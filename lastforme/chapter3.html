@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 3 — Rani, The Way I Loved You</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@200;300;400;500&family=JetBrains+Mono:wght@100;200;300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sans: 'Inter', sans-serif;
+      --serif: 'Cormorant Garamond', serif;
+      --mono: 'JetBrains Mono', monospace;
+      --accent-sunset: #d99c68;
+      --faded-gold: #c8956c;
+      --soft-pink: rgba(219, 142, 172, 0.15);
+      --bg-midnight: #060505;
+      --glass-border: rgba(255, 255, 255, 0.05);
+      --text-muted: rgba(255, 255, 255, 0.35);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg-midnight);
+      color: rgba(230, 220, 205, 0.9);
+      font-family: var(--serif);
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Ambient noise & VHS overlays */
+    #grain-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 99;
+      opacity: 0.8;
+    }
+
+    .vhs-lines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 2px,
+        rgba(0, 0, 0, 0.15) 2px,
+        rgba(0, 0, 0, 0.15) 4px
+      );
+      pointer-events: none;
+      z-index: 98;
+    }
+
+    .rain-overlay {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 3;
+      opacity: 0.35;
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    /* Ambient sunset backglow */
+    .sunset-ambient-glow {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 40%, #20130c 0%, #060505 70%);
+      z-index: 1;
+      opacity: 0.85;
+      transition: background 4s ease, filter 4s ease;
+    }
+
+    /* Fullscreen Sections for Scroll Snapping */
+    .story-section {
+      height: 100vh;
+      width: 100vw;
+      scroll-snap-align: start;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 24px;
+      z-index: 10;
+      overflow: hidden;
+    }
+
+    /* Layout: Split view (Image one side, text on the other) */
+    .section-container {
+      max-width: 1050px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 1.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .story-section.active .section-container {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Visual frame: Instagram Archive Vibe */
+    .archive-card-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 380px;
+      margin: 0 auto;
+      background: #0c0b0b;
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 40px var(--soft-pink);
+      transition: transform 1.5s ease, filter 1.5s ease;
+    }
+
+    .archive-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-family: var(--sans);
+    }
+
+    .close-friends-badge {
+      background: #10b981;
+      color: #fff;
+      font-size: 0.58rem;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .archive-meta {
+      font-family: var(--mono);
+      font-size: 0.58rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .archive-img-frame {
+      width: 100%;
+      aspect-ratio: 4/5;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+    }
+
+    .archive-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(10%) sepia(10%) brightness(0.85);
+      transition: all 20s ease;
+    }
+
+    .story-section.active .archive-img {
+      filter: grayscale(0%) sepia(5%) brightness(1);
+      transform: scale(1.05);
+    }
+
+    .archive-footer {
+      margin-top: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .repost-icon-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 0.6rem;
+      color: var(--accent-sunset);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Text Column Styles */
+    .text-column {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: left;
+    }
+
+    .dialogue-text {
+      font-size: clamp(1.25rem, 2.5vw, 1.85rem);
+      line-height: 1.8;
+      font-style: italic;
+      color: rgba(230, 220, 205, 0.95);
+    }
+
+    .dialogue-text p {
+      opacity: 0;
+      transform: translateY(15px);
+      transition: all 1.2s ease;
+      margin-bottom: 24px;
+    }
+
+    .story-section.active .dialogue-text p.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .dialogue-text p.highlight {
+      color: var(--accent-sunset);
+      font-weight: 400;
+    }
+
+    /* Start / Cover Screen */
+    .opening-gate {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      transition: opacity 2s ease;
+    }
+
+    .gate-title {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.4em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .gate-main-heading {
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      margin-bottom: 30px;
+      text-shadow: 0 0 20px rgba(217, 156, 104, 0.2);
+    }
+
+    .gate-prompt {
+      font-family: var(--sans);
+      font-size: 0.6rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent-sunset);
+      cursor: pointer;
+      border: 1px solid rgba(217, 156, 104, 0.2);
+      padding: 10px 24px;
+      border-radius: 30px;
+      background: transparent;
+      transition: all 0.5s ease;
+    }
+
+    .gate-prompt:hover {
+      background: rgba(217, 156, 104, 0.1);
+      border-color: var(--accent-sunset);
+      box-shadow: 0 0 15px rgba(217, 156, 104, 0.15);
+    }
+
+    /* Ending Page Frame */
+    .ending-frame {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    .ending-title {
+      font-family: var(--serif);
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      font-style: italic;
+      line-height: 2;
+      max-width: 750px;
+      opacity: 0;
+      transform: scale(0.95);
+      transition: all 2.5s ease;
+    }
+
+    .story-section.active .ending-title.show {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Navigation back/forth */
+    .cinematic-nav {
+      z-index: 100;
+    }
+
+    /* Responsive styling */
+    @media (max-width: 800px) {
+      body {
+        scroll-snap-type: none;
+        height: auto;
+      }
+      .story-section {
+        height: auto;
+        min-height: 100vh;
+        scroll-snap-align: none;
+        padding: 80px 20px;
+      }
+      .section-container {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .archive-card-wrapper {
+        max-width: 320px;
+      }
+    }
+  </style>
+</head>
+<body class="ch3-page">
+
+  <!-- Gate start screen -->
+  <div class="opening-gate" id="gate-screen">
+    <div class="gate-title">CHAPTER 03</div>
+    <h2 class="gate-main-heading">The Way I Loved You</h2>
+    <button class="gate-prompt" onclick="unlockStory()">buka lembaran</button>
+  </div>
+
+  <!-- Noise overlays -->
+  <canvas id="grain-canvas"></canvas>
+  <div class="vhs-lines"></div>
+  <div class="rain-overlay"></div>
+  <div class="sunset-ambient-glow" id="ambient-layer"></div>
+
+  <!-- STAGE 1: OPENING SCENE -->
+  <section class="story-section active" id="sec-opening">
+    <div class="section-container">
+      <div class="archive-card-wrapper">
+        <div class="archive-header">
+          <span class="close-friends-badge">★ Close Friends</span>
+          <div class="archive-meta">
+            <span>● archive</span>
+          </div>
+        </div>
+        <div class="archive-img-frame">
+          <img src="images/Foto7.jpeg" class="archive-img" alt="Rani">
+        </div>
+        <div class="archive-footer">
+          <span class="repost-icon-badge">🔄 Reposted by you</span>
+        </div>
+      </div>
+      <div class="text-column">
+        <div class="dialogue-text" id="dialogue-opening">
+          <p class="show" style="font-size: 0.95rem; font-family: var(--mono); color: var(--accent-sunset); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 12px;">Opening</p>
+          <p class="show" style="font-family: var(--sans); font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 24px;">Rani's archive</p>
+          <p class="show">“aku cuma pengen merasa dipilih.”</p>
+          <p id="op-p2">“bukan disembunyikan.”</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAGE 2: SCROLL SECTION 01 -->
+  <section class="story-section" id="sec-scroll1">
+    <div class="section-container">
+      <div class="archive-card-wrapper">
+        <div class="archive-header">
+          <span class="close-friends-badge">★ Close Friends</span>
+          <div class="archive-meta"><span>Rani</span></div>
+        </div>
+        <div class="archive-img-frame">
+          <img src="images/Foto4.jpeg" class="archive-img" alt="Rani">
+        </div>
+        <div class="archive-footer">
+          <span class="repost-icon-badge">🔄 Reposted</span>
+        </div>
+      </div>
+      <div class="text-column">
+        <div class="dialogue-text" id="dialogue-scroll1">
+          <p>“kadang…”</p>
+          <p>“aku iri lihat orang lain diposting.”</p>
+          <p>“bukan karena aku haus validasi.”</p>
+          <p>“aku cuma pengen semua orang tahu…”</p>
+          <p class="highlight">“kalau aku benar-benar bagian dari hidup kamu, Rani.”</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAGE 3: SCROLL SECTION 02 -->
+  <section class="story-section" id="sec-scroll2">
+    <div class="section-container">
+      <div class="archive-card-wrapper" style="box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(217, 156, 104, 0.15);">
+        <div class="archive-header">
+          <span class="close-friends-badge">★ Close Friends</span>
+          <div class="archive-meta"><span>timestamp // 02:14</span></div>
+        </div>
+        <div class="archive-img-frame">
+          <img src="images/Foto5.jpeg" class="archive-img" alt="Rani">
+        </div>
+        <div class="archive-footer">
+          <span class="repost-icon-badge">🔄 reposted by you</span>
+        </div>
+      </div>
+      <div class="text-column">
+        <div class="dialogue-text" id="dialogue-scroll2">
+          <p>“aku pengen merasa diakui.”</p>
+          <p>“aku pengen merasa dipilih.”</p>
+          <p>“aku pengen merasa cukup buat kamu.”</p>
+          <p class="highlight">“karena aku terlalu takut jadi seseorang yang gampang diganti.”</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAGE 4: SCROLL SECTION 03 -->
+  <section class="story-section" id="sec-scroll3">
+    <div class="section-container">
+      <div class="archive-card-wrapper" style="filter: blur(2px) brightness(0.65);">
+        <div class="archive-header">
+          <span class="close-friends-badge">★ Close Friends</span>
+          <div class="archive-meta"><span>blurry memories</span></div>
+        </div>
+        <div class="archive-img-frame">
+          <img src="images/Foto9.jpeg" class="archive-img" alt="Rani">
+        </div>
+        <div class="archive-footer">
+          <span class="repost-icon-badge">🔄 repost archive</span>
+        </div>
+      </div>
+      <div class="text-column">
+        <div class="dialogue-text" id="dialogue-scroll3">
+          <p>“aku tahu mungkin aku terlalu banyak minta diyakinkan.”</p>
+          <p>“aku terlalu sering bertanya hal yang sama.”</p>
+          <p>“aku terlalu sering takut diduakan.”</p>
+          <p>“aku terlalu sering takut kamu chatting sama cowok lain.”</p>
+          <p>“tapi semua itu muncul…”</p>
+          <p class="highlight">“karena aku terlalu takut kehilangan satu-satunya orang yang aku cinta sebesar ini.”</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAGE 5: EMOTIONAL VALIDATION SCENE -->
+  <section class="story-section" id="sec-validation">
+    <div class="section-container">
+      <div class="archive-card-wrapper" style="transform: scale(1.08); box-shadow: 0 40px 80px rgba(0,0,0,0.9), 0 0 50px rgba(217, 156, 104, 0.25);">
+        <div class="archive-header">
+          <span class="close-friends-badge">★ Close Friends</span>
+          <div class="archive-meta"><span>emotional archive</span></div>
+        </div>
+        <div class="archive-img-frame">
+          <img src="images/Foto8.jpeg" class="archive-img" id="zoom-img" alt="Rani">
+        </div>
+        <div class="archive-footer">
+          <span class="repost-icon-badge" style="color: #ef4444;">❤ Rani</span>
+        </div>
+      </div>
+      <div class="text-column">
+        <div class="dialogue-text" id="dialogue-validation">
+          <p>“aku cuma pengen merasa aman.”</p>
+          <p>“aku cuma pengen diyakinkan…”</p>
+          <p class="highlight">“kalau aku tetap pilihan kamu.”</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAGE 6: THE DEEPEST LINE -->
+  <section class="story-section" id="sec-deepest">
+    <div class="section-container">
+      <div class="archive-card-wrapper" style="filter: blur(8px) brightness(0.35);">
+        <div class="archive-header">
+          <span class="close-friends-badge">★ Close Friends</span>
+          <div class="archive-meta"><span>offline</span></div>
+        </div>
+        <div class="archive-img-frame">
+          <img src="images/Foto3.jpeg" class="archive-img" alt="Rani">
+        </div>
+        <div class="archive-footer">
+          <span class="repost-icon-badge">🔄 repost</span>
+        </div>
+      </div>
+      <div class="text-column">
+        <div class="dialogue-text" id="dialogue-deepest">
+          <p>“dan mungkin…”</p>
+          <p>“itu alasan kenapa aku terlalu sedih…”</p>
+          <p class="highlight">“waktu kamu online tapi tidak balas chat aku.”</p>
+          <p>“karena isi kepala aku langsung takut kehilangan kamu.”</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAGE 7: ENDING SCENE -->
+  <section class="story-section" id="sec-ending">
+    <div class="ending-frame">
+      <div class="ending-title" id="ending-words">
+        “aku tidak pernah minta sempurna.”<br><br>
+        “aku cuma pengen merasa kalau aku benar-benar dicintai dengan jelas.”<br><br>
+        <span style="color: var(--accent-sunset);">“karena buat aku… kamu bukan sekadar hubungan.”</span><br><br>
+        “kamu adalah rumah pertama yang benar-benar ingin aku pertahankan, Rani.”
+      </div>
+    </div>
+  </section>
+
+  <!-- Navigation bar overlay -->
+  <div class="cinematic-nav">
+    <a href="chapter2.html" class="nav-btn">prev</a>
+    <div class="nav-divider"></div>
+    <button class="nav-btn audio-toggle-btn">
+      <span class="audio-icon playing"></span>
+      audio
+    </button>
+    <div class="nav-divider"></div>
+    <a href="chapter4.html" class="nav-btn">next</a>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script>
+    // 1. Noise grain rendering
+    (function() {
+      const c = document.getElementById('grain-canvas');
+      const ctx = c.getContext('2d');
+      const rs = () => { c.width = innerWidth; c.height = innerHeight; };
+      rs(); window.addEventListener('resize', rs);
+      const draw = () => {
+        const d = ctx.createImageData(c.width, c.height);
+        for (let i = 0; i < d.data.length; i += 4) {
+          const v = Math.random() * 255 | 0;
+          d.data[i] = d.data[i+1] = d.data[i+2] = v;
+          d.data[i+3] = Math.random() * 12 | 0; // super fine VHS grain
+        }
+        ctx.putImageData(d, 0, 0);
+        requestAnimationFrame(draw);
+      };
+      draw();
+    })();
+
+    // 2. Unlock & Play ambience audio on click
+    function unlockStory() {
+      const gate = document.getElementById('gate-screen');
+      gate.style.opacity = '0';
+      setTimeout(() => gate.remove(), 2000);
+
+      // Play camera sound and swell to build mood
+      if (window.audioController) {
+        window.audioController.playCameraClick();
+        window.audioController.playSwell();
+        
+        // Start atmospheric background sounds
+        window.audioController.fadeTrack('rain', 0.05, 4000);
+        if (window.audioController.playPiano) window.audioController.playPiano();
+        window.audioController.fadePiano(0.04, 5000);
+        window.audioController.fadeTrack('static', 0.02, 3000);
+      }
+
+      // Start the animated timeline trigger for the opening section
+      triggerOpeningText();
+    }
+
+    // Dialogue animator helper
+    function animateParagraphs(containerId, delays) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const paragraphs = container.querySelectorAll('p:not(.show)');
+      paragraphs.forEach((p, index) => {
+        setTimeout(() => {
+          p.classList.add('show');
+        }, delays[index] || (index * 1500));
+      });
+    }
+
+    function triggerOpeningText() {
+      setTimeout(() => {
+        const op2 = document.getElementById('op-p2');
+        if (op2) op2.classList.add('show');
+      }, 3500);
+    }
+
+    // 3. Scroll spy and trigger timelines for each snap section
+    const observerOptions = {
+      root: null,
+      threshold: 0.55
+    };
+
+    const sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('active');
+          handleSectionTimeline(e.target.id);
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.story-section').forEach(sec => sectionObserver.observe(sec));
+
+    function handleSectionTimeline(id) {
+      const ambient = document.getElementById('ambient-layer');
+      
+      if (id === 'sec-opening') {
+        ambient.style.background = 'radial-gradient(circle at 50% 40%, #20130c 0%, #060505 70%)';
+      }
+      
+      else if (id === 'sec-scroll1') {
+        ambient.style.background = 'radial-gradient(circle at 50% 40%, #1e151a 0%, #060505 70%)';
+        animateParagraphs('dialogue-scroll1', [1000, 2500, 4500, 7000, 9000]);
+      }
+      
+      else if (id === 'sec-scroll2') {
+        ambient.style.background = 'radial-gradient(circle at 50% 40%, #171c26 0%, #060505 70%)';
+        animateParagraphs('dialogue-scroll2', [1000, 2500, 4000, 6500]);
+      }
+      
+      else if (id === 'sec-scroll3') {
+        ambient.style.background = 'radial-gradient(circle at 50% 40%, #131713 0%, #060505 70%)';
+        animateParagraphs('dialogue-scroll3', [1000, 2500, 4000, 5500, 7500, 9500]);
+      }
+      
+      else if (id === 'sec-validation') {
+        ambient.style.background = 'radial-gradient(circle at 50% 40%, #281014 0%, #060505 70%)';
+        
+        // Increase rain volume for climax
+        if (window.audioController) {
+          window.audioController.fadeTrack('rain', 0.12, 3000);
+        }
+
+        // Zoom image slowly
+        const zoomImg = document.getElementById('zoom-img');
+        if (zoomImg) {
+          zoomImg.style.transform = 'scale(1.12)';
+          zoomImg.style.transition = 'transform 10s ease';
+        }
+
+        animateParagraphs('dialogue-validation', [1000, 3500, 6000]);
+      }
+      
+      else if (id === 'sec-deepest') {
+        // Redupkan/Gelapkan background
+        ambient.style.background = '#020101';
+        if (window.audioController) {
+          window.audioController.fadeTrack('rain', 0.04, 3000);
+        }
+        animateParagraphs('dialogue-deepest', [1000, 2500, 4500, 7000]);
+      }
+      
+      else if (id === 'sec-ending') {
+        ambient.style.background = 'radial-gradient(circle at 50% 40%, #1c140e 0%, #060505 80%)';
+        
+        const words = document.getElementById('ending-words');
+        setTimeout(() => {
+          words.classList.add('show');
+        }, 1000);
+
+        // Auto fadeout audio and transition to Chapter 4 after reading
+        setTimeout(() => {
+          const overlay = document.querySelector('.transition-overlay');
+          if (overlay) {
+            overlay.classList.remove('fade-out');
+          }
+          if (window.audioController) {
+            window.audioController.fadePiano(0, 4000);
+            window.audioController.fadeTrack('rain', 0, 4000);
+          }
+          setTimeout(() => {
+            window.location.href = 'chapter4.html';
+          }, 3000);
+        }, 19000);
+      }
+    }
+  </script>
+</body>
+</html>

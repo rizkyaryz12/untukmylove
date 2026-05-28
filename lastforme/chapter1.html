@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 1 - Rani, The Girl I Love</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Premium visual styling for Chapter 1 memories */
+    body.ch1-page {
+      background: #060504;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .sunset-bg {
+      position: fixed;
+      inset: 0;
+      background: url('images/ch1.jpg') center/cover no-repeat;
+      filter: blur(15px) brightness(0.18) sepia(15%);
+      transform: scale(1.05);
+      z-index: 1;
+      animation: gentlePan 20s infinite alternate ease-in-out;
+    }
+
+    @keyframes gentlePan {
+      0% {
+        transform: scale(1.05) translate(0, 0);
+      }
+
+      100% {
+        transform: scale(1.08) translate(-10px, 5px);
+      }
+    }
+
+    /* Floating amber dust particles */
+    .dust-container {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    .dust {
+      position: absolute;
+      background: rgba(200, 149, 108, 0.25);
+      border-radius: 50%;
+      filter: blur(1px);
+      animation: floatDust infinite linear;
+    }
+
+    @keyframes floatDust {
+      0% {
+        transform: translateY(100vh) translateX(0) scale(1);
+        opacity: 0;
+      }
+
+      10%,
+      90% {
+        opacity: 0.6;
+      }
+
+      100% {
+        transform: translateY(-10vh) translateX(50px) scale(0.5);
+        opacity: 0;
+      }
+    }
+
+    .ch1-stage {
+      position: relative;
+      z-index: 10;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 80px 24px 220px;
+      text-align: center;
+    }
+
+    .intro-dialogue {
+      height: 70vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 80px;
+    }
+
+    /* Scattered interactive memory tabletop */
+    .tabletop-gallery {
+      position: relative;
+      width: 100%;
+      min-height: 1850px;
+      margin: 60px 0;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      background: rgba(5, 5, 5, 0.45);
+      backdrop-filter: blur(8px);
+      border-radius: 24px;
+      padding: 40px;
+    }
+
+    .tabletop-title {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 60px;
+    }
+
+    /* Absolute polaroid scatter grid */
+    .scatter-polaroid {
+      position: absolute;
+      background: #0d0d0c;
+      padding: 14px 14px 28px;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+      width: 230px;
+      transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      cursor: pointer;
+      z-index: 5;
+    }
+
+    .scatter-polaroid:hover {
+      transform: scale(1.1) rotate(0deg) !important;
+      z-index: 100 !important;
+      border-color: var(--accent-sunset);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+      filter: sepia(0%) brightness(1);
+    }
+
+    .scatter-img-wrapper {
+      width: 100%;
+      height: 190px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .scatter-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(15%) sepia(20%) brightness(0.85);
+      transition: all 0.8s ease;
+    }
+
+    .scatter-polaroid:hover .scatter-img {
+      filter: grayscale(0%) sepia(5%) brightness(1);
+      transform: scale(1.05);
+    }
+
+    /* Polaroid modal click preview */
+    .preview-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 2000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      backdrop-filter: blur(12px);
+    }
+
+    .preview-modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .preview-box {
+      background: #0d0d0c;
+      border: 1px solid var(--glass-border);
+      padding: 24px;
+      max-width: 460px;
+      width: 90%;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.9);
+      text-align: center;
+      position: relative;
+    }
+
+    .close-preview {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: transparent;
+      border: none;
+      color: var(--text-soft);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    /* Scroll animations */
+    .fade-reveal-text {
+      font-family: var(--font-serif);
+      font-size: clamp(1.3rem, 3.5vw, 2.2rem);
+      font-style: italic;
+      color: var(--text-soft);
+      margin: 120px 0;
+      line-height: 1.6;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 1.5s ease;
+    }
+
+    .fade-reveal-text.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Mobile responsive layout adjustment */
+    @media (max-width: 768px) {
+      .tabletop-gallery {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        align-items: center;
+        min-height: auto;
+        padding: 20px 10px;
+      }
+
+      .scatter-polaroid {
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: rotate(0deg) !important;
+        width: 90% !important;
+        max-width: 280px;
+      }
+    }
+  </style>
+</head>
+
+<body class="ch1-page">
+
+  <!-- Fade Cover -->
+  <div class="transition-overlay"></div>
+
+  <!-- Ambient elements -->
+  <canvas id="grain-canvas"></canvas>
+  <div class="vhs-lines"></div>
+  <div class="rain-container" style="opacity: 0.4;"></div>
+
+  <div class="sunset-bg"></div>
+  <div class="dust-container" id="dust-layer"></div>
+
+  <main class="ch1-stage">
+
+    <!-- STAGE 1: INTRO DIALOGUES -->
+    <div class="intro-dialogue">
+      <p class="subtitle" style="font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.25em;">CHAPTER 01
+      </p>
+      <h1 class="title-medium" style="margin-top: 10px;">Rani - The Girl I Love</h1>
+      <div style="width: 40px; height: 1px; background: var(--accent-sunset); margin: 16px auto 40px;"></div>
+
+      <p class="sub-line" id="intro-sub1" style="font-size: 1.5rem; transition-delay: 0.5s;">“Kamu itu rumah paling
+        tenang yang pernah aku punya.”</p>
+      <p class="sub-line" id="intro-sub2"
+        style="font-size: 1.25rem; color: var(--text-muted); margin-top: 16px; transition-delay: 2.5s;">“Dan barangkali,
+        rumah terbaik yang pernah kusinggahi.”</p>
+    </div>
+
+    <!-- STAGE 2: INTERACTIVE SCATTER TABLETOP GALLERY (10 Photos) -->
+    <div class="tabletop-gallery">
+      <div class="tabletop-title">Rani's Memories Scattered On My Desk (Click to view)</div>
+
+      <!-- Polaroid 1 -->
+      <div class="scatter-polaroid" style="top: 3%; left: 5%; transform: rotate(-8deg);"
+        onclick="openPreview('images/Foto1.jpeg', 'Foto pertama yang kamu berikan', 'Foto pertama yang kamu berikan kepadaku dan disitu kamu bertanya aku cantik ga? dan benar cantik banget .')">
+        <div class="scatter-img-wrapper">
+          <img src="images/Foto1.jpeg" class="scatter-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption" style="font-size: 0.75rem;">Foto pertama Kamu.</p>
+      </div>
+
+      <!-- Polaroid 2 -->
+      <div class="scatter-polaroid" style="top: 6%; left: 38%; transform: rotate(5deg);"
+        onclick="openPreview('images/Foto2.jpeg', 'Membahas Warna Rambutmu', 'malam panjang mendengarkan lagu kesayanganmu sampai ketiduran. rintik hujan terasa hangat waktu itu.')">
+        <div class="scatter-img-wrapper">
+          <img src="images/Foto2.jpeg" class="scatter-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption" style="font-size: 0.75rem;">Membahas Warna Rambutmu .</p>
+      </div>
+
+      <!-- Polaroid 3 -->
+      <div class="scatter-polaroid" style="top: 2%; right: 5%; transform: rotate(-4deg);"
+        onclick="openPreview('images/Foto3.jpeg', 'cantik yang spontan', 'kamu berdiri di jalan sepi menatap senja jingga yang indah. begitu tenang dan spontan.')">
+        <div class="scatter-img-wrapper">
+          <img src="images/Foto3.jpeg" class="scatter-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption" style="font-size: 0.75rem;">cantik yang spontan.</p>
+      </div>
+
+      <!-- Polaroid 4 -->
+      <div class="scatter-polaroid" style="top: 24%; left: 12%; transform: rotate(6deg);"
+        onclick="openPreview('images/Foto4.jpeg', 'Fotomu dengan gaya yang lucu', 'kamu memakai kebaya batik cantik dengan gaya pose lucu yang selalu membuatku gemas.')">
+        <div class="scatter-img-wrapper">
+          <img src="images/Foto4.jpeg" class="scatter-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption" style="font-size: 0.75rem;">Fotomu dengan gaya yang lucu.</p>
+      </div>
+
+      <!-- Polaroid 5 -->
+      <div class="scatter-polaroid" style="top: 28%; left: 45%; transform: rotate(-6deg);"
+        onclick="openPreview('images/Foto5.jpeg', 'Apakah ini pap terakhir dalam hidupku', 'melihat senyum manismu di tengah jalan senja itu. salah satu memori yang paling kurindukan.')">
+        <div class="scatter-img-wrapper">
+          <img src="images/Foto5.jpeg" class="scatter-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption" style="font-size: 0.75rem;">Apakah ini pap terakhir dalam hidupku.</p>
+      </div>
+
+      <!-- Polaroid 6 -->
+      <div class="scatter-polaroid" style="top: 20%; right: 8%; transform: rotate(7deg);"
+        onclick="openPreview('images/Foto6.jpeg', 'Aku suka pap ini', 'selfie manis yang kamu kirim saat sedang bersandar santai. sederhana tapi selalu membuatku bahagia.')">
+        <div class="scatter-img-wrapper">
+          <img src="images/Foto6.jpeg" class="scatter-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption" style="font-size: 0.75rem;">Aku suka pap ini.</p>
+      </div>
+
+      <!-- Polaroid 7 -->
+      <div class="scatter-polaroid" style="top: 48%; left: 6%; transform: rotate(-5deg);"
+        onclick="openPreview('images/Foto7.jpeg', 'Senyum teduhmu', 'wajah polosmu yang apa adanya tanpa riasan berlebih, memancarkan senyuman yang sangat teduh.')">
+        <div class="scatter-img-wrapper">
+          <img src="images/Foto7.jpeg" class="scatter-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption" style="font-size: 0.75rem;">Senyum teduhmu.</p>
+      </div>
+
+      <!-- Polaroid 8 -->
+      <div class="scatter-polaroid" style="top: 54%; left: 36%; transform: rotate(4deg);"
+        onclick="openPreview('images/Foto8.jpeg', 'Rambut dicepol', 'selfie sederhana dengan rambut dicepol rapi dan senyum manismu yang menenangkan.')">
+        <div class="scatter-img-wrapper">
+          <img src="images/Foto8.jpeg" class="scatter-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption" style="font-size: 0.75rem;">Rambut dicepol.</p>
+      </div>
+
+      <!-- Polaroid 9 -->
+      <div class="scatter-polaroid" style="top: 46%; right: 10%; transform: rotate(-8deg);"
+        onclick="openPreview('images/Foto9.jpeg', 'Gemesnya kamu', 'kamu dengan pose lucumu menggunakan filter burung-burung merah muda di kepalamu.')">
+        <div class="scatter-img-wrapper">
+          <img src="images/Foto9.jpeg" class="scatter-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption" style="font-size: 0.75rem;">Gemesnya kamu.</p>
+      </div>
+
+      <!-- Polaroid 10 -->
+      <div class="scatter-polaroid" style="bottom: 8%; left: 24%; transform: rotate(6deg);"
+        onclick="openPreview('images/Foto10.jpeg', 'Filter favoritmu', 'hijab putih bersih dipadukan dengan filter puppy kesayanganmu. sangat menggemaskan.')">
+        <div class="scatter-img-wrapper">
+          <img src="images/Foto10.jpeg" class="scatter-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption" style="font-size: 0.75rem;">Filter favoritmu.</p>
+      </div>
+
+      <!-- Polaroid 11 -->
+      <div class="scatter-polaroid" style="top: 72%; right: 5%; transform: rotate(-6deg); z-index: 6;"
+        onclick="openPreview('images/Foto11.jpeg', 'Fotomu sepulang idul fitri', 'secangkir kopi hangat di kedai kecil yang sepi saat senja. kita bertukar cerita sepele yang terasa luar biasa.')">
+        <div class="scatter-img-wrapper">
+          <img src="images/Foto11.jpeg" class="scatter-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption" style="font-size: 0.75rem;">Fotomu sepulang idul fitri.</p>
+      </div>
+
+      <!-- Polaroid 12 -->
+      <div class="scatter-polaroid" style="top: 80%; left: 6%; transform: rotate(8deg); z-index: 8;"
+        onclick="openPreview('images/Foto12.jpeg', 'Hadiah Pertamakuk', 'Hadiah Pertamaku yang aku berikan walaupun hanya sebuah buket bunga kecil.')">
+        <div class="scatter-img-wrapper">
+          <img src="images/Foto12.jpeg" class="scatter-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption" style="font-size: 0.75rem;">Hadiah Pertamaku.</p>
+      </div>
+    </div>
+
+    <!-- STAGE 3: INTERACTIVE SCROLLING MONOLOGUE REVEAL -->
+    <div class="fade-reveal-text" id="reveal-text1">
+      "aku selalu menyukai caramu menatap mataku,<br>seolah semua luka di dunia ini tiba-tiba saja sembuh."
+    </div>
+
+    <div class="fade-reveal-text" id="reveal-text2">
+      "dan mungkin itu kenapa aku jadi terlalu takut kehilanganmu."
+    </div>
+
+    <div style="text-align: center; margin-top: 100px;">
+      <a href="chapter2.html" class="btn-cinematic">enter our world</a>
+    </div>
+
+  </main>
+
+  <!-- Interactive popup modal -->
+  <div class="preview-modal" id="preview-modal">
+    <div class="preview-box">
+      <button class="close-preview" onclick="closePreview()">CLOSE</button>
+      <div style="width:100%; height:320px; overflow:hidden; border-radius:4px; margin-bottom:20px; background:#000;">
+        <img src="" id="preview-img" style="width:100%; height:100%; object-fit:cover;" alt="Popup memory">
+      </div>
+      <p class="stat-label" id="preview-title" style="color: var(--accent-sunset);"></p>
+      <p class="text-desc" id="preview-desc"
+        style="margin-top:10px; font-family: var(--font-serif); font-size:1.15rem; font-style:italic; line-height:1.6;">
+      </p>
+    </div>
+  </div>
+
+  <!-- Interactive controls -->
+  <div class="cinematic-nav">
+    <a href="opening.html" class="nav-btn">prev</a>
+    <div class="nav-divider"></div>
+    <button class="nav-btn audio-toggle-btn">
+      <span class="audio-icon playing"></span>
+      audio
+    </button>
+    <div class="nav-divider"></div>
+    <a href="chapter2.html" class="nav-btn">next</a>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Reveal opening subtitles
+      setTimeout(() => document.getElementById('intro-sub1').classList.add('reveal'), 500);
+      setTimeout(() => document.getElementById('intro-sub2').classList.add('reveal'), 2200);
+
+      // Render warm amber dust particles
+      const dustLayer = document.getElementById('dust-layer');
+      const particleCount = 30;
+      for (let i = 0; i < particleCount; i++) {
+        const d = document.createElement('div');
+        d.classList.add('dust');
+        d.style.left = Math.random() * 100 + 'vw';
+        d.style.width = d.style.height = (Math.random() * 4 + 2) + 'px';
+        d.style.animationDuration = (Math.random() * 12 + 8) + 's';
+        d.style.animationDelay = (Math.random() * 10) + 's';
+        dustLayer.appendChild(d);
+      }
+
+      // Intersection observer to fade reveal monologues on scroll
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('active');
+          }
+        });
+      }, { threshold: 0.15 });
+
+      observer.observe(document.getElementById('reveal-text1'));
+      observer.observe(document.getElementById('reveal-text2'));
+
+      // Scroll-reveal monologue: trigger swell when each line appears
+      const swellObserver = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting && window.audioController) {
+            window.audioController.playSwell();
+          }
+        });
+      }, { threshold: 0.5 });
+      swellObserver.observe(document.getElementById('reveal-text2'));
+    });
+
+    function openPreview(imgSrc, title, desc) {
+      document.getElementById('preview-img').src = imgSrc;
+      document.getElementById('preview-title').textContent = title;
+      document.getElementById('preview-desc').textContent = desc;
+      document.getElementById('preview-modal').classList.add('active');
+      // Camera click + warm swell when opening a memory
+      if (window.audioController) {
+        window.audioController.playCameraClick();
+        setTimeout(() => window.audioController.playSwell(), 150);
+      }
+    }
+
+    function closePreview() {
+      document.getElementById('preview-modal').classList.remove('active');
+    }
+  </script>
+</body>
+
+</html>

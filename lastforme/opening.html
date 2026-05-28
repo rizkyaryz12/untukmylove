@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opening - Rani's Memories Archive</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .opening-background {
+      position: absolute;
+      inset: 0;
+      background: url('images/opening.jpg') center/cover no-repeat;
+      filter: blur(12px) brightness(0.25) sepia(20%);
+      transform: scale(1.05);
+      animation: clearImage 12s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      z-index: 1;
+    }
+    
+    @keyframes clearImage {
+      to {
+        filter: blur(4px) brightness(0.35) sepia(10%);
+        transform: scale(1);
+      }
+    }
+
+    .opening-card {
+      position: relative;
+      z-index: 5;
+      text-align: center;
+      max-width: 680px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fade Cover -->
+  <div class="transition-overlay"></div>
+
+  <!-- Ambient elements -->
+  <canvas id="grain-canvas"></canvas>
+  <div class="vhs-lines"></div>
+  <div class="rain-container"></div>
+
+  <div class="opening-background"></div>
+
+  <main class="fullscreen-layout">
+    <div class="opening-card">
+      <h1 class="title-large" style="font-style: italic; font-weight: 300;">
+        "Aku takut suatu hari nanti…<br>aku lupa suara tawamu."
+      </h1>
+      <p class="subtitle" style="font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.3em; text-transform: uppercase;">
+        Jadi aku menyimpan semuanya di sini, Rani.
+      </p>
+      
+      <a href="chapter1.html" class="btn-cinematic">open memories</a>
+    </div>
+  </main>
+
+  <!-- Interactive controls -->
+  <div class="cinematic-nav">
+    <button class="nav-btn audio-toggle-btn">
+      <span class="audio-icon playing"></span>
+      audio
+    </button>
+    <div class="nav-divider"></div>
+    <a href="chapter1.html" class="nav-btn">skip intro</a>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>

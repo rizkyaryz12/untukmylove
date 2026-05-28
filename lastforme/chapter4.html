@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 4 - The Fear</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Premium Immersive Styling for The Fear */
+    body.fear-page {
+      background: #020306;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .room-background {
+      position: fixed;
+      inset: 0;
+      background: url('images/ch4.jpg') center/cover no-repeat;
+      filter: blur(20px) brightness(0.12) sepia(30%);
+      transform: scale(1.1);
+      transition: filter 4s ease, transform 15s ease;
+      z-index: 1;
+    }
+
+    .room-background.clear {
+      filter: blur(3px) brightness(0.2) sepia(10%);
+      transform: scale(1.02);
+    }
+
+    .scene-container {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 24px;
+    }
+
+    /* Subtitle text styles */
+    .opening-subs {
+      max-width: 600px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .sub-line {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: clamp(1.2rem, 3.5vw, 2.2rem);
+      color: var(--text-soft);
+      opacity: 0;
+      filter: blur(8px);
+      transform: translateY(10px);
+      transition: opacity 1.5s ease, filter 1.5s ease, transform 1.5s ease;
+      margin-bottom: 16px;
+    }
+
+    .sub-line.reveal {
+      opacity: 1;
+      filter: blur(0);
+      transform: translateY(0);
+    }
+
+    .quote-fear {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: clamp(1.4rem, 4vw, 2.8rem);
+      color: var(--text-primary);
+      text-shadow: 0 0 12px rgba(255, 255, 255, 0.15);
+      opacity: 0;
+      filter: blur(10px);
+      transform: scale(0.95);
+      transition: opacity 2s ease, filter 2s ease, transform 2s ease;
+      max-width: 780px;
+      line-height: 1.5;
+    }
+
+    .quote-fear.reveal {
+      opacity: 1;
+      filter: blur(0);
+      transform: scale(1);
+    }
+
+    /* Scattered dynamic thoughts */
+    .thought-scatter {
+      position: absolute;
+      font-family: var(--font-serif);
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.08);
+      font-size: clamp(0.9rem, 2vw, 1.4rem);
+      opacity: 0;
+      filter: blur(4px);
+      transition: all 1.5s ease;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .thought-scatter.show {
+      opacity: 0.35;
+      filter: blur(0);
+    }
+
+    .thought-scatter.glow {
+      color: #93c5fd;
+      opacity: 0.75 !important;
+      text-shadow: 0 0 8px rgba(147, 197, 253, 0.5);
+      transform: scale(1.05);
+    }
+
+    /* Stacking Notification Center */
+    .notifications-stack {
+      position: absolute;
+      right: 5%;
+      top: 15%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 320px;
+      z-index: 15;
+    }
+
+    .stack-notif {
+      background: rgba(12, 13, 17, 0.85);
+      border: 1px solid rgba(147, 197, 253, 0.15);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .stack-notif.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Screen shake / glitch styles */
+    body.shake {
+      animation: screenShake 0.15s infinite;
+    }
+
+    @keyframes screenShake {
+      0%, 100% { transform: translate(0, 0); }
+      20% { transform: translate(-3px, 2px); }
+      40% { transform: translate(3px, -2px); }
+      60% { transform: translate(-2px, -3px); }
+      80% { transform: translate(2px, 3px); }
+    }
+
+    /* Fullscreen freeze silence banner */
+    .silence-screen {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 2000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .silence-screen.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .silence-quote {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: clamp(1.4rem, 4.5vw, 2.6rem);
+      color: var(--accent-sunset);
+      text-shadow: 0 0 12px rgba(200, 149, 108, 0.3);
+      opacity: 0;
+      transform: scale(0.95);
+      transition: opacity 2s ease, transform 2s ease;
+      text-align: center;
+      max-width: 760px;
+    }
+
+    .silence-quote.reveal {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Chat Frame adjustments */
+    .fear-chat {
+      margin-top: 30px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 1s ease;
+      width: 100%;
+      max-width: 420px;
+    }
+
+    .fear-chat.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body class="blue-aesthetic fear-page">
+
+  <!-- Fade Cover -->
+  <div class="transition-overlay"></div>
+
+  <!-- Ambient elements -->
+  <canvas id="grain-canvas"></canvas>
+  <div class="vhs-lines"></div>
+  <div class="rain-container" style="opacity: 0.75;"></div>
+
+  <!-- Heartbeat overlay -->
+  <div class="heartbeat-overlay" id="fear-heartbeat"></div>
+
+  <!-- Dark room background -->
+  <div class="room-background" id="room-bg"></div>
+
+  <!-- Main interactive content -->
+  <main class="scene-container">
+    
+    <!-- SUBTITLE OPENING SCENE -->
+    <div class="opening-subs" id="opening-subs">
+      <p class="sub-line" id="sub1">“aku mulai takut…”</p>
+      <p class="sub-line" id="sub2">“takut kehilangan satu-satunya tempat aku pulang.”</p>
+    </div>
+
+    <!-- MAIN QUOTE -->
+    <div class="quote-fear" id="quote-fear">
+      “Rasa takut kehilanganmu perlahan meracuni kepalaku.”
+    </div>
+
+    <!-- CHAT WINDOW -->
+    <div class="chat-window fear-chat" id="fear-chat">
+      <div class="chat-header">
+        <div class="chat-avatar"></div>
+        <div>
+          <div class="chat-name">Kamu</div>
+          <div class="chat-status" id="chat-header-status">online</div>
+        </div>
+      </div>
+      <div class="chat-messages" id="fear-chat-messages"></div>
+      <div class="chat-input">
+        <div style="flex-grow:1; text-align:left;">
+          <span class="chat-input-text" id="fear-input-area"></span>
+          <span class="chat-cursor">|</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- OVERWHELMING THOUGHTS SPAN CONTAINER -->
+  <div id="thought-spawner"></div>
+
+  <!-- STACKING NOTIFICATIONS -->
+  <div class="notifications-stack" id="notif-stack"></div>
+
+  <!-- SILENCE SCREEN BANNER -->
+  <div class="silence-screen" id="silence-banner">
+    <div class="silence-quote" id="silence-quote">
+      “ovtku malah memperburuk semuanya.”
+    </div>
+  </div>
+
+  <!-- Audio unlocker -->
+  <script src="js/script.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const roomBg = document.getElementById('room-bg');
+      const sub1 = document.getElementById('sub1');
+      const sub2 = document.getElementById('sub2');
+      const quoteFear = document.getElementById('quote-fear');
+      const fearChat = document.getElementById('fear-chat');
+      const fearHeartbeat = document.getElementById('fear-heartbeat');
+
+      // Timeline configuration for emotional experience
+      
+      // Step 1: Reveal first subtitle
+      setTimeout(() => {
+        sub1.classList.add('reveal');
+      }, 1500);
+
+      // Step 2: Reveal second subtitle
+      setTimeout(() => {
+        sub2.classList.add('reveal');
+      }, 3500);
+
+      // Step 3: Clear subtitles, clear blur background, show main quote
+      setTimeout(() => {
+        sub1.classList.remove('reveal');
+        sub2.classList.remove('reveal');
+        
+        setTimeout(() => {
+          roomBg.classList.add('clear');
+          quoteFear.classList.add('reveal');
+        }, 1000);
+      }, 7000);
+
+      // Step 4: Show Chat window & trigger heartbeat
+      setTimeout(() => {
+        quoteFear.classList.remove('reveal');
+        
+        setTimeout(() => {
+          fearChat.classList.add('show');
+          fearHeartbeat.classList.add('active');
+          if (window.audioController) {
+            window.audioController.startHeartbeat(0.35);
+          }
+          startInteractiveChat();
+        }, 1000);
+      }, 11000);
+    });
+
+    // Promise wrappers to avoid overlaps
+    function typePromise(text, inputEl) {
+      return new Promise((resolve) => {
+        window.simulateTyping(text, inputEl, null, resolve);
+      });
+    }
+
+    function deletePromise(inputEl) {
+      return new Promise((resolve) => {
+        window.simulateDeleting(inputEl, resolve);
+      });
+    }
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    // Dynamic iMessage / Chat simulation using async/await
+    async function startInteractiveChat() {
+      const inputEl = document.getElementById('fear-input-area');
+      const messagesContainer = document.getElementById('fear-chat-messages');
+      const statusEl = document.getElementById('chat-header-status');
+
+      function appendBubble(text, isDeleted = false) {
+        const bubble = document.createElement('div');
+        bubble.classList.add('chat-bubble');
+        if (isDeleted) bubble.classList.add('deleted');
+        bubble.textContent = text;
+        messagesContainer.appendChild(bubble);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        // Play notification pop
+        if (window.audioController) {
+          window.audioController.playChatNotif();
+        }
+        return bubble;
+      }
+
+      // 1. "udah tidur?" -> deleted
+      statusEl.textContent = "typing...";
+      await typePromise("udah tidur?", inputEl);
+      await deletePromise(inputEl);
+      statusEl.textContent = "online";
+      await sleep(1200);
+
+      // 2. "aku ganggu ya?" -> deleted
+      statusEl.textContent = "typing...";
+      await typePromise("aku ganggu ya?", inputEl);
+      await deletePromise(inputEl);
+      statusEl.textContent = "active 1m ago";
+      await sleep(1200);
+
+      // 3. "sibuk?" -> deleted
+      statusEl.textContent = "typing...";
+      await typePromise("sibuk?", inputEl);
+      await deletePromise(inputEl);
+      statusEl.textContent = "last seen recently";
+      await sleep(1200);
+
+      // 4. "maaf ya..." -> deleted bubble
+      statusEl.textContent = "typing...";
+      await typePromise("maaf ya...", inputEl);
+      inputEl.textContent = "";
+      statusEl.textContent = "last seen recently";
+      appendBubble("pesan telah dihapus", true);
+      
+      // Trigger breakdown once chat ends
+      await sleep(1500);
+      startBreakdown();
+    }
+
+    // Breakdown Chaos Timeline
+    function startBreakdown() {
+      const spawner = document.getElementById('thought-spawner');
+      const notifStack = document.getElementById('notif-stack');
+      const fearChat = document.getElementById('fear-chat');
+
+      // Hide Chat window
+      fearChat.classList.remove('show');
+
+      // Start drone tension and speed up/increase breathing and heartbeat
+      if (window.audioController) {
+        window.audioController.startDrone(0.3);
+        window.audioController.startTinnitus(0.02);
+        window.audioController.fadeTrack('heartbeat', 0.6, 2000);
+        window.audioController.fadeTrack('breathing', 0.08, 2000);
+      }
+
+      // Thoughts array to scatter
+      const scaryThoughts = [
+        "kalau dia bosan?", "kenapa dia tiba-tiba cuek?", "aku takut diduakan.", "siapa cowok itu?",
+        "aku takut kamu chatting sama cowok lain.", "apa aku kurang cukup?", "aku takut kehilangan rumah paling nyaman aku.",
+        "kalau sebenarnya aku cuma sementara?", "kenapa sekarang kamu beda?", "aku terlalu banyak mikir ya?",
+        "apa aku terlalu berlebihan?", "apa kamu mulai capek?", "apa kamu masih sayang?", "aku cuma pengen diyakinkan.",
+        "aku cuma pengen dipilih.", "aku cuma takut kehilangan kamu."
+      ];
+
+      // Breakdown headers
+      const breakdownSentences = [
+        "aku takut dibohongi", "aku takut kamu nyaman sama orang lain", "aku takut kamu pergi diam-diam",
+        "aku takut kalah sama orang lain", "aku takut cuma jadi tempat singgah", "aku takut ditinggalkan",
+        "aku takut sendirian lagi"
+      ];
+
+      // Stacking notifications array
+      const notifications = [
+        "Kamu sedang mengetik...",
+        "Panggilan tidak terjawab semalam",
+        "Isi kepala kamu ramai kembali.",
+        "Pesan tidak terkirim."
+      ];
+
+      // Scatter thoughts randomly
+      scaryThoughts.forEach((t, i) => {
+        setTimeout(() => {
+          const item = document.createElement('div');
+          item.classList.add('thought-scatter');
+          item.textContent = t;
+          item.style.top = (Math.random() * 80 + 10) + '%';
+          item.style.left = (Math.random() * 80 + 10) + '%';
+          spawner.appendChild(item);
+
+          // Play subtle text pop sound
+          if (window.audioController) {
+            window.audioController.playCassetteNoise();
+          }
+
+          // Force reflow and reveal
+          setTimeout(() => item.classList.add('show'), 100);
+
+          // Vibrate thought slightly
+          setInterval(() => {
+            item.style.transform = `translate(${(Math.random() - 0.5) * 8}px, ${(Math.random() - 0.5) * 6}px)`;
+          }, 100);
+        }, i * 300);
+      });
+
+      // Spawn notifications
+      notifications.forEach((notifText, i) => {
+        setTimeout(() => {
+          const card = document.createElement('div');
+          card.classList.add('stack-notif');
+          card.innerHTML = `
+            <div class="notification-avatar"></div>
+            <div class="notification-text">
+              <div class="notification-title">Kamu</div>
+              <div class="notification-body">${notifText}</div>
+            </div>
+          `;
+          notifStack.appendChild(card);
+          setTimeout(() => card.classList.add('show'), 100);
+
+          // Play notification chime
+          if (window.audioController) {
+            window.audioController.playChatNotif();
+          }
+        }, i * 1200 + 1000);
+      });
+
+      // Overlap bigger bold breakdown texts on screen center
+      breakdownSentences.forEach((sentence, i) => {
+        setTimeout(() => {
+          const element = document.createElement('div');
+          element.classList.add('thought-scatter', 'glow');
+          element.textContent = sentence;
+          element.style.top = (30 + (i * 8)) + '%';
+          element.style.left = (25 + (Math.random() * 10)) + '%';
+          element.style.fontSize = '1.8rem';
+          spawner.appendChild(element);
+          
+          setTimeout(() => element.classList.add('show'), 100);
+          
+          // Play whoosh sound
+          if (window.audioController) {
+            window.audioController.playWhoosh();
+          }
+
+          // Trigger light screen shaking
+          document.body.classList.add('shake');
+          setTimeout(() => document.body.classList.remove('shake'), 200);
+
+        }, i * 900 + 4000);
+      });
+
+      // SILENCE MOMENT (Freeze all)
+      setTimeout(() => {
+        // Clear all thoughts and stack
+        spawner.innerHTML = "";
+        notifStack.innerHTML = "";
+
+        // Fade out all intense tension tracks and piano. Leave only very soft rain and breathing.
+        if (window.audioController) {
+          window.audioController.fadePiano(0, 1500);
+          window.audioController.fadeTrack('drone', 0, 1500);
+          window.audioController.fadeTrack('heartbeat', 0, 1500);
+          window.audioController.fadeTrack('tinnitus', 0, 1000);
+          window.audioController.fadeTrack('static', 0.005, 1500);
+          window.audioController.fadeTrack('rain', 0.04, 1500);
+          window.audioController.fadeTrack('breathing', 0.01, 1500);
+        }
+
+        const banner = document.getElementById('silence-banner');
+        const quote = document.getElementById('silence-quote');
+
+        banner.classList.add('active');
+        
+        setTimeout(() => {
+          quote.classList.add('reveal');
+        }, 800);
+
+        // Ending sequence of chapter 4
+        setTimeout(() => {
+          quote.classList.remove('reveal');
+          
+          setTimeout(() => {
+            banner.classList.remove('active');
+
+            // Fade ambient tracks back in softly
+            if (window.audioController) {
+              window.audioController.fadePiano(0.15, 2000);
+              window.audioController.fadeTrack('rain', 0.12, 2000);
+              window.audioController.fadeTrack('static', 0.02, 2000);
+              window.audioController.fadeTrack('breathing', 0.03, 2000);
+            }
+
+            triggerFinalEndingScene();
+          }, 1500);
+        }, 5500);
+
+      }, 13000);
+    }
+
+    // FINAL SCENE
+    function triggerFinalEndingScene() {
+      const roomBg = document.getElementById('room-bg');
+      
+      // Make room dark again
+      roomBg.classList.remove('clear');
+
+      // Create ending elements dynamically
+      const scene = document.querySelector('.scene-container');
+      scene.innerHTML = `
+        <div class="opening-subs" style="margin-top: 40px;">
+          <p class="sub-line" id="end-sub1" style="font-size:1.6rem;">“dan semakin aku takut kehilangan kamu…”</p>
+          <p class="sub-line" id="end-sub2" style="font-size:1.6rem; color: var(--accent-sunset); margin-top:20px;">“semakin aku berubah jadi orang yang melelahkan.”</p>
+        </div>
+      `;
+
+      setTimeout(() => {
+        document.getElementById('end-sub1').classList.add('reveal');
+      }, 1000);
+
+      setTimeout(() => {
+        document.getElementById('end-sub2').classList.add('reveal');
+      }, 3200);
+
+      // Smooth fade redirect to chapter 5
+      setTimeout(() => {
+        const overlay = document.querySelector('.transition-overlay');
+        if (overlay) {
+          overlay.classList.remove('fade-out');
+        }
+
+        // Fade out all audio before loading Chapter 5
+        if (window.audioController) {
+          window.audioController.fadePiano(0, 1500);
+          window.audioController.fadeTrack('rain', 0, 1500);
+          window.audioController.fadeTrack('static', 0, 1500);
+          window.audioController.fadeTrack('breathing', 0, 1500);
+        }
+
+        setTimeout(() => {
+          window.location.href = 'chapter5.html';
+        }, 1500);
+      }, 7000);
+    }
+  </script>
+</body>
+</html>

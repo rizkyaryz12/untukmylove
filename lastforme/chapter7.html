@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 7 - The Unsent Message</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Fade Cover -->
+  <div class="transition-overlay"></div>
+
+  <!-- Ambient elements -->
+  <canvas id="grain-canvas"></canvas>
+  <div class="vhs-lines"></div>
+  <div class="rain-container" style="opacity: 0.5;"></div>
+
+  <main class="container">
+    <header style="margin-bottom: 40px;">
+      <p class="subtitle" style="font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.25em;">CHAPTER 07</p>
+      <h1 class="title-medium">The Unsent Message</h1>
+      <div style="width: 60px; height: 1px; background: var(--accent-sunset); margin-top: 16px;"></div>
+    </header>
+
+    <!-- WhatsApp mock frame -->
+    <div class="chat-window">
+      <div class="chat-header">
+        <div class="chat-avatar"></div>
+        <div>
+          <div class="chat-name">Kamu</div>
+          <div class="chat-status" id="chat-header-status">last seen 2:41 AM</div>
+        </div>
+      </div>
+      
+      <div class="chat-messages" id="chat-messages-container">
+        <!-- Injected bubbles -->
+      </div>
+      
+      <div class="chat-input">
+        <div style="flex-grow:1; text-align:left;">
+          <span class="chat-input-text" id="chat-input-area"></span>
+          <span class="chat-cursor">|</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 60px;">
+      <a href="chapter8.html" class="btn-cinematic">read the letter</a>
+    </div>
+  </main>
+
+  <!-- Interactive controls -->
+  <div class="cinematic-nav">
+    <a href="chapter6.html" class="nav-btn">prev</a>
+    <div class="nav-divider"></div>
+    <button class="nav-btn audio-toggle-btn">
+      <span class="audio-icon playing"></span>
+      audio
+    </button>
+    <div class="nav-divider"></div>
+    <a href="chapter8.html" class="nav-btn">next</a>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const inputEl = document.getElementById('chat-input-area');
+      const messagesContainer = document.getElementById('chat-messages-container');
+      const headerStatus = document.getElementById('chat-header-status');
+
+      function appendBubble(text, isSent = false, isDeleted = false) {
+        const bubble = document.createElement('div');
+        bubble.classList.add('chat-bubble');
+        if (isSent) bubble.classList.add('sent');
+        if (isDeleted) bubble.classList.add('deleted');
+        bubble.textContent = text;
+        messagesContainer.appendChild(bubble);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        // Play notification pop on bubble appear
+        if (window.audioController) window.audioController.playChatNotif();
+        return bubble;
+      }
+
+      function startChatSequence() {
+        // Start subtle heartbeat — anxious, unsent messages
+        if (window.audioController) {
+          window.audioController.startHeartbeat(0.2);
+        }
+
+        // Step 1: Type "aku minta maaf ya" then delete
+        headerStatus.textContent = "typing...";
+        window.simulateTyping("aku minta maaf ya", inputEl, null, () => {
+          window.simulateDeleting(inputEl, () => {
+            // Step 2: Type "aku cuma takut kehilangan kamu" then delete
+            window.simulateTyping("aku cuma takut kehilangan kamu", inputEl, null, () => {
+              window.simulateDeleting(inputEl, () => {
+                // Step 3: Type "aku capek lawan isi kepala aku sendiri" then delete
+                window.simulateTyping("aku capek lawan isi kepala aku sendiri", inputEl, null, () => {
+                  window.simulateDeleting(inputEl, () => {
+                    // Final: deleted bubble — heartbeat fades to silence
+                    headerStatus.textContent = "last seen 2:41 AM";
+                    appendBubble("Pesan ini telah dihapus", false, true);
+                    if (window.audioController) {
+                      window.audioController.fadeTrack('heartbeat', 0, 2000);
+                    }
+                  });
+                });
+              });
+            });
+          });
+        });
+      }
+
+      setTimeout(startChatSequence, 1500);
+    });
+  </script>
+</body>
+</html>
