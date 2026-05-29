@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Recovering memories... Restoring deleted feelings...">
+  <title>Prologue - Memory Restoration</title>
+
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Specific styles for Prologue */
+    .prologue-terminal {
+      text-align: left;
+      font-family: var(--font-mono);
+      color: var(--accent-sunset);
+      font-size: 0.85rem;
+      max-width: 480px;
+      line-height: 2;
+      opacity: 0.85;
+    }
+
+    .terminal-line {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 0;
+      animation: typeLine 2.2s steps(40, end) forwards;
+    }
+
+    .terminal-line:nth-child(2) {
+      animation-delay: 1.2s;
+    }
+
+    .terminal-line:nth-child(3) {
+      animation-delay: 2.5s;
+    }
+
+    @keyframes typeLine {
+      from {
+        width: 0
+      }
+
+      to {
+        width: 100%
+      }
+    }
+
+    .time-info {
+      position: absolute;
+      bottom: 40px;
+      left: 40px;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.25em;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Fade Cover -->
+  <div class="transition-overlay"></div>
+
+  <!-- Noise overlays -->
+  <canvas id="grain-canvas"></canvas>
+  <div class="vhs-lines"></div>
+
+  <!-- Main content -->
+  <main class="fullscreen-layout">
+    <div class="prologue-terminal">
+      <span class="terminal-line">&gt; system.status: recovering memories...</span>
+      <span class="terminal-line">&gt; index.feeling: restoring deleted emotions...</span>
+      <span class="terminal-line">&gt; status: 2:41 AM ambient ready. redirecting...</span>
+    </div>
+
+    <div class="time-info">
+      LATE-NIGHT CONFESSION // VHS_DECK_01
+    </div>
+  </main>
+
+  <script src="js/script.js"></script>
+  <script>
+    // Automatic redirection
+    setTimeout(() => {
+      const overlay = document.querySelector('.transition-overlay');
+      if (overlay) {
+        overlay.classList.remove('fade-out');
+      }
+      setTimeout(() => {
+        window.location.href = 'opening.html';
+      }, 1500);
+    }, 4500);
+  </script>
+</body>
+
+</html>

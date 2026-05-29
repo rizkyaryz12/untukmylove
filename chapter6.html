@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 6 - The Distance</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Premium visual styling for The Distance */
+    body.distance-page {
+      background: #020306;
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .room-distance-bg {
+      position: fixed;
+      inset: 0;
+      background: url('images/ch5.jpg') center/cover no-repeat;
+      filter: grayscale(60%) brightness(0.12) sepia(10%);
+      transform: scale(1.05);
+      z-index: 1;
+      transition: filter 4s ease, transform 12s ease;
+    }
+
+    .room-distance-bg.zoom {
+      transform: scale(1.01);
+      filter: grayscale(70%) brightness(0.08);
+    }
+
+    .distance-stage {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 80px 24px 180px;
+      text-align: center;
+    }
+
+    .dialogue-box {
+      margin-bottom: 80px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 1.2s ease;
+    }
+
+    .dialogue-box.reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Floating memory polaroids - blurred */
+    .floating-blur-memory {
+      position: absolute;
+      width: 140px;
+      height: 180px;
+      background: #0d0d0c;
+      border: 1px solid var(--glass-border);
+      padding: 8px 8px 24px;
+      opacity: 0.12;
+      filter: blur(2px) grayscale(80%);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      z-index: 5;
+      pointer-events: none;
+      transition: all 2s ease;
+    }
+
+    .floating-blur-memory.reveal {
+      opacity: 0.35;
+      filter: blur(0) grayscale(40%);
+    }
+
+    /* Interactive Phone Call Log Simulator */
+    .call-timeline-box {
+      background: rgba(12, 13, 17, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: 20px;
+      padding: 30px 24px;
+      max-width: 440px;
+      margin: 40px auto;
+      text-align: left;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 1.2s ease;
+    }
+
+    .call-timeline-box.reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .call-step {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.8s ease;
+    }
+
+    .call-step:last-child {
+      border-bottom: none;
+    }
+
+    .call-step.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .call-status-red {
+      color: #ef4444;
+      font-weight: 500;
+    }
+
+    .call-status-gray {
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+    }
+
+    /* Long monologue lists styled elegantly */
+    .confession-scroller {
+      margin-top: 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+      text-align: left;
+      max-width: 620px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .confession-phrase {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      color: var(--text-soft);
+      line-height: 1.6;
+      border-left: 2px solid rgba(200, 149, 108, 0.15);
+      padding-left: 20px;
+      opacity: 0;
+      transform: translateX(-10px);
+      transition: all 1s ease;
+    }
+
+    .confession-phrase.reveal {
+      opacity: 1;
+      transform: translateX(0);
+      border-color: var(--accent-sunset);
+    }
+
+    .vignette-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.8) 100%);
+      z-index: 8;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="distance-page">
+
+  <!-- Fade Cover -->
+  <div class="transition-overlay"></div>
+
+  <!-- Ambient elements -->
+  <canvas id="grain-canvas"></canvas>
+  <div class="vhs-lines"></div>
+  <div class="rain-container" style="opacity: 0.85;"></div>
+  
+  <div class="vignette-overlay"></div>
+  <div class="room-distance-bg" id="distance-bg"></div>
+
+  <!-- Floating blurred polaroids in the background -->
+  <div class="floating-blur-memory" id="float-mem1" style="top: 15%; left: 8%; transform: rotate(-8deg);">
+    <img src="images/mem1.jpg" style="width:100%; height:100%; object-fit:cover;" alt="Memory">
+  </div>
+  <div class="floating-blur-memory" id="float-mem2" style="top: 45%; right: 6%; transform: rotate(12deg);">
+    <img src="images/mem3.jpg" style="width:100%; height:100%; object-fit:cover;" alt="Memory">
+  </div>
+
+  <main class="distance-stage">
+    
+    <!-- HEADER -->
+    <header style="margin-bottom: 80px;">
+      <p class="subtitle" style="font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.25em;">CHAPTER 06</p>
+      <h1 class="title-medium">The Distance</h1>
+      <div style="width: 60px; height: 1px; background: var(--accent-sunset); margin: 16px auto 0;"></div>
+    </header>
+
+    <!-- STAGE 1: INTRO SUBTITLE -->
+    <div class="dialogue-box" id="intro-dialogue">
+      <p class="sub-line" id="intro-sub1">“aku sadar kamu mulai berubah.”</p>
+      <p class="sub-line" id="intro-sub2" style="margin-top: 16px;">“dan aku mulai kehilangan cara buat nenangin diri sendiri.”</p>
+    </div>
+
+    <!-- STAGE 2: MAIN CUEK QUOTE -->
+    <div class="dialogue-box" id="main-quote-box">
+      <p class="text-content" style="font-size: 1.8rem; color: var(--text-primary); text-shadow: 0 0 10px rgba(255,255,255,0.1);">
+        “aku sadar kamu mulai cuek…<br>dan mungkin aku yang bikin semuanya terasa berat.”
+      </p>
+    </div>
+
+    <!-- STAGE 3: INTERACTIVE CALL SEQUENCER -->
+    <div class="call-timeline-box" id="call-box">
+      <p class="stat-label" style="margin-bottom: 16px; font-size:0.65rem;">Calling Status Timeline</p>
+      
+      <!-- Step 1: Failed Call Semalam -->
+      <div class="call-step" id="call-step1">
+        <div>
+          <div style="font-size: 0.85rem; font-weight:500;" class="call-status-red">Panggilan Tidak Terjawab</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top:2px;">Semalam, 02:41 AM</div>
+        </div>
+        <div class="call-status-gray">Failed</div>
+      </div>
+
+      <!-- Step 2: Calling now -->
+      <div class="call-step" id="call-step2">
+        <div>
+          <div style="font-size: 0.85rem; font-weight:500; color:var(--text-soft);">Calling...</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top:2px;">Dialing Kamu</div>
+        </div>
+        <div class="call-status-gray" style="color:var(--accent-sunset);">no answer</div>
+      </div>
+
+      <!-- Step 3: Typing deleted -->
+      <div class="call-step" id="call-step3">
+        <div>
+          <div style="font-size: 0.85rem; font-weight:500; color:var(--text-soft);">typing...</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top:2px;">drafting chat</div>
+        </div>
+        <div class="call-status-gray" style="text-decoration: line-through;">deleted</div>
+      </div>
+
+      <!-- Step 4: Seen status -->
+      <div class="call-step" id="call-step4">
+        <div>
+          <div style="font-size: 0.85rem; font-weight:500; color:var(--text-soft);">seen 02:45</div>
+          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top:2px;">read message</div>
+        </div>
+        <div class="call-status-red" style="font-size:0.75rem;">no reply</div>
+      </div>
+    </div>
+
+    <!-- STAGE 4: LONG EMOTIONAL MONOLOGUE LISTS -->
+    <div class="confession-scroller" id="confession-list">
+      <div class="confession-phrase">“aku terlalu kekanak-kanakan.”</div>
+      <div class="confession-phrase">“aku terlalu sering butuh diyakinkan.”</div>
+      <div class="confession-phrase">“aku terlalu sering takut kehilangan.”</div>
+      <div class="confession-phrase">“aku terlalu sering mikir kamu bakal pergi.”</div>
+      <div class="confession-phrase">“aku terlalu sering panik waktu kamu berubah sedikit aja.”</div>
+      <div class="confession-phrase">“aku terlalu sering nyari kepastian dari kamu.”</div>
+      <div class="confession-phrase" style="color: var(--accent-sunset);">“dan tanpa sadar… aku bikin orang yang paling aku sayang jadi capek.”</div>
+      
+      <div class="confession-phrase" style="margin-top: 40px;">“padahal aku cuma takut kehilangan rumah paling nyaman aku.”</div>
+      <div class="confession-phrase">“aku cuma takut suatu hari nanti kamu benar-benar pergi.”</div>
+      <div class="confession-phrase">“aku cuma takut diganti.”</div>
+      <div class="confession-phrase" style="color: var(--accent-sunset);">“aku cuma takut tidak cukup buat dipertahankan.”</div>
+    </div>
+
+    <!-- STAGE 5: ENDING -->
+    <div class="dialogue-box" id="ending-box" style="margin-top: 120px;">
+      <p class="text-content" style="font-size:1.6rem; color: var(--accent-sunset); font-style:italic;">
+        “mungkin aku terlalu mencintaimu dengan rasa takut yang salah.”
+      </p>
+    </div>
+
+    <div style="text-align: center; margin-top: 80px;">
+      <a href="chapter7.html" class="btn-cinematic" id="btn-next-step">the unsent message</a>
+    </div>
+
+  </main>
+
+  <!-- Interactive controls -->
+  <div class="cinematic-nav">
+    <a href="chapter5.html" class="nav-btn">prev</a>
+    <div class="nav-divider"></div>
+    <button class="nav-btn audio-toggle-btn">
+      <span class="audio-icon playing"></span>
+      audio
+    </button>
+    <div class="nav-divider"></div>
+    <a href="chapter7.html" class="nav-btn">next</a>
+  </div>
+
+  <script src="js/script.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const distanceBg = document.getElementById('distance-bg');
+      const introDialogue = document.getElementById('intro-dialogue');
+      const introSub1 = document.getElementById('intro-sub1');
+      const introSub2 = document.getElementById('intro-sub2');
+      const mainQuoteBox = document.getElementById('main-quote-box');
+      const callBox = document.getElementById('call-box');
+      const confessionList = document.getElementById('confession-list');
+      const endingBox = document.getElementById('ending-box');
+      const nextBtn = document.getElementById('btn-next-step');
+
+      // Floating memories reveal
+      setTimeout(() => {
+        document.getElementById('float-mem1').classList.add('reveal');
+        document.getElementById('float-mem2').classList.add('reveal');
+      }, 1000);
+
+      // Intro Timeline
+      setTimeout(() => {
+        introDialogue.classList.add('reveal');
+        setTimeout(() => introSub1.classList.add('reveal'), 500);
+        setTimeout(() => introSub2.classList.add('reveal'), 2500);
+      }, 1000);
+
+      // Transition to Main Quote
+      setTimeout(() => {
+        introDialogue.classList.remove('reveal');
+        setTimeout(() => {
+          mainQuoteBox.classList.add('reveal');
+          distanceBg.classList.add('zoom');
+        }, 1200);
+      }, 7000);
+
+      // Transition to Call Timeline Box
+      setTimeout(() => {
+        mainQuoteBox.classList.remove('reveal');
+        setTimeout(() => {
+          callBox.classList.add('reveal');
+          
+          // Animate call timeline sequence with audio cues
+          setTimeout(() => {
+            document.getElementById('call-step1').classList.add('active');
+            if (window.audioController) window.audioController.playChatNotif();
+          }, 500);
+          
+          // Calling step — play subtle whoosh for failed call
+          setTimeout(() => {
+            document.getElementById('call-step2').classList.add('active');
+            if (window.audioController) {
+              window.audioController.playWhoosh();
+              window.audioController.fadeTrack('heartbeat', 0.25, 1500);
+              window.audioController.startHeartbeat(0.25);
+            }
+          }, 2000);
+          
+          setTimeout(() => {
+            document.getElementById('call-step3').classList.add('active');
+            if (window.audioController) window.audioController.playCassetteNoise();
+          }, 4500);
+          setTimeout(() => {
+            document.getElementById('call-step4').classList.add('active');
+            if (window.audioController) window.audioController.playChatNotif();
+          }, 7000);
+
+        }, 1200);
+      }, 12000);
+
+      // Transition to Long confession list
+      setTimeout(() => {
+        callBox.classList.remove('reveal');
+        
+        setTimeout(() => {
+          // Reveal confessions one by one with audio cues
+          const phrases = confessionList.querySelectorAll('.confession-phrase');
+          phrases.forEach((el, index) => {
+            setTimeout(() => {
+              el.classList.add('reveal');
+              window.scrollBy({ top: 60, behavior: 'smooth' });
+              // Soft cassette noise on each line reveal
+              if (window.audioController) window.audioController.playCassetteNoise();
+            }, index * 2200);
+          });
+        }, 1200);
+      }, 23000);
+
+      // Final Ending Scene in Chapter 6
+      setTimeout(() => {
+        // Blur bg out
+        distanceBg.style.filter = "grayscale(100%) brightness(0.04) blur(10px)";
+        
+        // Fade out most audio for quiet emotional ending
+        if (window.audioController) {
+          window.audioController.fadeTrack('heartbeat', 0, 2000);
+          window.audioController.fadeTrack('drone', 0, 2000);
+          window.audioController.fadePiano(0.07, 2000);
+          window.audioController.fadeTrack('rain', 0.06, 2000);
+        }
+
+        // Hide confessions
+        confessionList.style.opacity = '0';
+        confessionList.style.transition = 'opacity 2s ease';
+        
+        setTimeout(() => {
+          endingBox.classList.add('reveal');
+          nextBtn.style.opacity = '1';
+          nextBtn.style.pointerEvents = 'auto';
+          // Soft atmospheric swell on ending quote reveal
+          if (window.audioController) window.audioController.playSwell();
+        }, 2000);
+
+      }, 50000);
+    });
+  </script>
+</body>
+</html>

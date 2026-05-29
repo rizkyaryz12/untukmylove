@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Final — Rani, If You Ever Miss Me</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    :root {
+      --sans: 'Inter', sans-serif;
+      --serif: 'Cormorant Garamond', serif;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      font-family: var(--serif);
+      color: rgba(220, 205, 185, .9);
+    }
+
+    /* Canvases */
+    #grain-canvas,
+    #rain-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    #grain-canvas {
+      z-index: 6;
+    }
+
+    #rain-canvas {
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 4s ease;
+    }
+
+    .vhs-lines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(to bottom, transparent 0, transparent 2px, rgba(0, 0, 0, .09) 2px, rgba(0, 0, 0, .09) 4px);
+      pointer-events: none;
+      z-index: 7;
+    }
+
+    /* Dust particles */
+    #dust-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 8;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 5s ease;
+    }
+
+    .dust {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      background: rgba(210, 185, 140, .4);
+      animation: float-up linear infinite;
+    }
+
+    @keyframes float-up {
+      0% {
+        transform: translateY(0) translateX(0);
+        opacity: 0;
+      }
+
+      20% {
+        opacity: .6;
+      }
+
+      80% {
+        opacity: .3;
+      }
+
+      100% {
+        transform: translateY(-100vh) translateX(var(--dx));
+        opacity: 0;
+      }
+    }
+
+    /* Black screen */
+    #black-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      transition: opacity 3s ease;
+    }
+
+    #start-prompt {
+      font-family: var(--sans);
+      font-size: .58rem;
+      letter-spacing: .35em;
+      color: rgba(200, 133, 74, .25);
+      text-transform: uppercase;
+      animation: breathe 3s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+
+      0%,
+      100% {
+        opacity: .2;
+      }
+
+      50% {
+        opacity: .65;
+      }
+    }
+
+    /* Scene */
+    #scene {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      background: radial-gradient(ellipse at 50% 35%, #160c06 0%, #090504 65%, #000 100%);
+      opacity: 0;
+      transition: opacity 4s ease;
+    }
+
+    /* Photo */
+    #photo-wrap {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -52%);
+      width: min(360px, 70vw);
+      aspect-ratio: 4/5;
+      z-index: 15;
+      opacity: 0;
+      transition: opacity 5s ease, filter 8s ease, transform 40s ease;
+      filter: grayscale(50%) brightness(.45) blur(6px) sepia(.2);
+    }
+
+    #photo-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border: 1px solid rgba(255, 255, 255, .03);
+    }
+
+    #photo-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0, 0, 0, .7) 100%);
+      z-index: 1;
+    }
+
+    /* Text layer */
+    #text-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 28px;
+      pointer-events: none;
+    }
+
+    .caption {
+      font-family: var(--serif);
+      color: rgba(220, 205, 185, .88);
+      text-align: center;
+      opacity: 0;
+      line-height: 1.8;
+      transition: opacity 2s ease;
+      white-space: pre-line;
+      max-width: min(700px, 88vw);
+    }
+
+    .caption.xs {
+      font-size: clamp(.7rem, 1.4vw, .85rem);
+      color: rgba(200, 165, 120, .5);
+    }
+
+    .caption.sm {
+      font-size: clamp(.88rem, 1.9vw, 1.05rem);
+      color: rgba(210, 185, 150, .7);
+    }
+
+    .caption.md {
+      font-size: clamp(1.15rem, 2.8vw, 1.8rem);
+      font-style: italic;
+    }
+
+    .caption.lg {
+      font-size: clamp(1.5rem, 3.8vw, 2.4rem);
+      font-style: italic;
+    }
+
+    .caption.xl {
+      font-size: clamp(2rem, 5.5vw, 3.2rem);
+      font-weight: 300;
+      letter-spacing: .03em;
+    }
+
+    .caption.final {
+      font-size: clamp(1.3rem, 3.2vw, 2rem);
+      font-style: italic;
+      line-height: 2;
+      color: rgba(210, 185, 150, .85);
+    }
+
+    /* Chapter label */
+    #ch-label {
+      position: fixed;
+      top: 28px;
+      left: 32px;
+      z-index: 60;
+      font-family: var(--sans);
+      font-size: .5rem;
+      letter-spacing: .35em;
+      color: rgba(200, 133, 74, .18);
+      opacity: 0;
+      transition: opacity 2s ease;
+      text-transform: uppercase;
+    }
+
+    /* Clock */
+    #clock-dot {
+      position: fixed;
+      top: 32px;
+      right: 32px;
+      z-index: 60;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: rgba(200, 133, 74, .25);
+      opacity: 0;
+    }
+
+    #clock-dot.ticking {
+      opacity: 1;
+      animation: tick 1s steps(1) infinite;
+    }
+
+    @keyframes tick {
+
+      0%,
+      49% {
+        opacity: .35;
+      }
+
+      50%,
+      100% {
+        opacity: 0;
+      }
+    }
+
+    /* Memory archive layer */
+    #memory-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    .mem-txt {
+      position: absolute;
+      font-family: var(--serif);
+      font-size: clamp(.65rem, 1.3vw, .82rem);
+      font-style: italic;
+      color: rgba(200, 149, 108, .22);
+      opacity: 0;
+      transition: opacity 3s ease;
+    }
+
+    /* VHS flicker */
+    @keyframes vhs-flicker {
+
+      0%,
+      97% {
+        opacity: 1;
+      }
+
+      97.5% {
+        opacity: .6;
+      }
+
+      98% {
+        opacity: 1;
+      }
+
+      99% {
+        opacity: .7;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    #vhs-flicker {
+      position: fixed;
+      inset: 0;
+      z-index: 9;
+      pointer-events: none;
+      animation: vhs-flicker 8s steps(1) infinite;
+      background: transparent;
+    }
+
+    /* Final fade */
+    #final-fade {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: #000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 7s ease;
+    }
+
+    /* Secret whisper */
+    #secret-whisper {
+      position: fixed;
+      inset: 0;
+      z-index: 220;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      color: rgba(200, 149, 108, .35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 3.5s ease;
+    }
+
+    #secret-whisper.active {
+      opacity: 1;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="transition-overlay"></div>
+  <canvas id="grain-canvas"></canvas>
+  <canvas id="rain-canvas"></canvas>
+  <div class="vhs-lines"></div>
+  <div id="vhs-flicker"></div>
+  <div id="dust-layer"></div>
+  <div id="clock-dot"></div>
+
+  <div id="black-screen">
+    <div id="start-prompt">klik di mana saja</div>
+  </div>
+
+  <div id="scene"></div>
+
+  <div id="photo-wrap">
+    <img src="images/Foto16.jpeg" alt="Kenangan Terakhir">
+    <div id="photo-vignette"></div>
+  </div>
+
+  <div id="memory-layer">
+    <div class="mem-txt" style="top:15%;left:8%;">"besok jangan lupa makan ya"</div>
+    <div class="mem-txt" style="top:28%;right:6%;">"aku sayang kamu juga"</div>
+    <div class="mem-txt" style="top:55%;left:5%;">"kamu gak sendirian"</div>
+    <div class="mem-txt" style="top:68%;right:10%;">"hati-hati ya"</div>
+    <div class="mem-txt" style="top:42%;left:70%;">"kamu gak lebay"</div>
+    <div class="mem-txt" style="top:78%;left:15%;">"istirahat dulu"</div>
+  </div>
+
+  <div id="text-layer"></div>
+  <div id="ch-label">FINAL CHAPTER — IF YOU EVER MISS ME</div>
+  <div id="final-fade"></div>
+  <div id="secret-whisper">"aku masih sayang kamu."</div>
+
+  <script src="js/script.js"></script>
+  <script>
+    (() => {
+      const wait = ms => new Promise(r => setTimeout(r, ms));
+      const layer = document.getElementById('text-layer');
+      const ac = () => window.audioController;
+      let activeCaption = null;
+      window.__finalSkip = false;
+
+      /* ── Caption helpers ── */
+      function showCaption(text, cls, dur) {
+        return new Promise(async r => {
+          if (window.__finalSkip) { r(); return; }
+          if (activeCaption) {
+            activeCaption.style.opacity = '0';
+            await wait(1000);
+            if (activeCaption) { activeCaption.remove(); activeCaption = null; }
+          }
+          if (window.__finalSkip) { r(); return; }
+          const el = document.createElement('div');
+          el.className = `caption ${cls}`;
+          el.textContent = text;
+          layer.appendChild(el);
+          activeCaption = el;
+          await wait(100);
+          if (window.__finalSkip) { r(); return; }
+          el.style.opacity = '1';
+          await wait(dur || 4000);
+          r();
+        });
+      }
+      async function hideCaption(ms) {
+        if (!activeCaption || window.__finalSkip) return;
+        activeCaption.style.opacity = '0';
+        await wait(ms || 2000);
+        if (activeCaption) { activeCaption.remove(); activeCaption = null; }
+      }
+
+      /* ── Grain ── */
+      (function () {
+        const c = document.getElementById('grain-canvas');
+        const ctx = c.getContext('2d');
+        const rs = () => { c.width = innerWidth; c.height = innerHeight; };
+        rs(); window.addEventListener('resize', rs);
+        const draw = () => {
+          const d = ctx.createImageData(c.width, c.height);
+          for (let i = 0; i < d.data.length; i += 4) {
+            const v = Math.random() * 255 | 0;
+            d.data[i] = d.data[i + 1] = d.data[i + 2] = v;
+            d.data[i + 3] = Math.random() * 14 | 0;
+          }
+          ctx.putImageData(d, 0, 0);
+          requestAnimationFrame(draw);
+        };
+        draw();
+      })();
+
+      /* ── Rain ── */
+      (function () {
+        const c = document.getElementById('rain-canvas');
+        const ctx = c.getContext('2d');
+        let drops = [];
+        const rs = () => {
+          c.width = innerWidth; c.height = innerHeight;
+          drops = Array.from({ length: 100 }, () => ({
+            x: Math.random() * c.width, y: Math.random() * c.height,
+            l: 8 + Math.random() * 20, v: 4 + Math.random() * 6,
+            a: .03 + Math.random() * .1
+          }));
+        };
+        rs(); window.addEventListener('resize', rs);
+        const draw = () => {
+          ctx.clearRect(0, 0, c.width, c.height);
+          drops.forEach(d => {
+            ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(d.x - 1, d.y + d.l);
+            ctx.strokeStyle = `rgba(190,210,235,${d.a})`; ctx.lineWidth = .6; ctx.stroke();
+            d.y += d.v; if (d.y > c.height) { d.y = -d.l; d.x = Math.random() * c.width; }
+          });
+          requestAnimationFrame(draw);
+        };
+        draw();
+      })();
+
+      /* ── Dust ── */
+      function spawnDust() {
+        const layer2 = document.getElementById('dust-layer');
+        if (!layer2) return;
+        layer2.style.opacity = '1';
+        for (let i = 0; i < 35; i++) {
+          const d = document.createElement('div');
+          d.className = 'dust';
+          const dur = 12 + Math.random() * 18;
+          const dx = (Math.random() * 60 - 30) + 'px';
+          d.style.cssText = `left:${Math.random() * 100}%;top:${80 + Math.random() * 30}%;--dx:${dx};animation-duration:${dur}s;animation-delay:${Math.random() * dur * -1}s;opacity:0;`;
+          layer2.appendChild(d);
+        }
+      }
+
+      /* ── Clock synth ── */
+      let clockIv = null;
+      function playTick() {
+        const ctx2 = ac()?.getContext();
+        if (!ctx2) return;
+        const now = ctx2.currentTime;
+        const osc = ctx2.createOscillator();
+        osc.type = 'sine'; osc.frequency.setValueAtTime(750, now);
+        osc.frequency.exponentialRampToValueAtTime(160, now + .04);
+        const g = ctx2.createGain();
+        g.gain.setValueAtTime(.018, now); g.gain.exponentialRampToValueAtTime(.001, now + .05);
+        osc.connect(g); g.connect(ctx2.destination);
+        osc.start(now); osc.stop(now + .06);
+      }
+      function startClock() {
+        if (clockIv) return;
+        document.getElementById('clock-dot')?.classList.add('ticking');
+        clockIv = setInterval(() => { if (!window.__finalSkip) playTick(); else stopClock(); }, 1000);
+      }
+      function stopClock() {
+        if (clockIv) { clearInterval(clockIv); clockIv = null; }
+        const d = document.getElementById('clock-dot');
+        if (d) { d.classList.remove('ticking'); d.style.opacity = '0'; }
+      }
+
+      /* ── Memory bubbles ── */
+      function showMemories() {
+        document.querySelectorAll('.mem-txt').forEach((el, i) => {
+          setTimeout(() => { if (!window.__finalSkip) el.style.opacity = '1'; }, i * 2200);
+        });
+      }
+      function hideMemories() {
+        document.querySelectorAll('.mem-txt').forEach(el => { el.style.opacity = '0'; });
+      }
+
+      /* ══ MAIN STORY TIMELINE ══ */
+      async function runStory() {
+        const scene = document.getElementById('scene');
+        const rainC = document.getElementById('rain-canvas');
+        const bs = document.getElementById('black-screen');
+        const chLabel = document.getElementById('ch-label');
+        const photo = document.getElementById('photo-wrap');
+        const finalFade = document.getElementById('final-fade');
+        const whisper = document.getElementById('secret-whisper');
+
+        // ─ 1. Deep silence — 4s ─
+        await wait(4000);
+
+        // ─ 2. Room breathes in ─
+        bs.style.opacity = '0';
+        setTimeout(() => { bs.style.pointerEvents = 'none'; }, 3100);
+        scene.style.opacity = '1';
+        rainC.style.opacity = '0.45';
+        chLabel.style.opacity = '1';
+        startClock();
+
+        if (ac()) {
+          ac().fadeTrack('rain', 0.06, 4000);
+          ac().fadeTrack('breathing', 0.01, 4000);
+          if (ac().playPiano) ac().playPiano();
+          ac().fadePiano(0.04, 5000);
+        }
+
+        await wait(4000);
+
+        // ─ 3. Photo rises from the dark ─
+        photo.style.opacity = '1';
+        photo.style.transform = 'translate(-50%, -52%) scale(1.04)';
+        spawnDust();
+
+        await wait(3000);
+
+        // ═══ FINAL LETTER ═══
+
+        await showCaption('"kalau suatu hari nanti kamu buka website ini lagi, Rani…"', 'md', 5500);
+        await hideCaption(); await wait(3000);
+
+        await showCaption('"aku harap yang kamu ingat bukan bagaimana aku pergi."', 'md', 5000);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"bukan bagaimana aku terlalu overthinking."', 'sm', 4000);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"bukan bagaimana aku terlalu sering takut kehilangan."', 'sm', 4500);
+        await hideCaption(); await wait(2500);
+
+        await showCaption('"tapi bagaimana aku pernah sangat mencintaimu."', 'lg', 5500);
+        await hideCaption();
+
+        // SUNYI 3 DETIK
+        await wait(3500);
+
+        // ─ Piano soft rise ─
+        if (ac()) ac().fadePiano(0.07, 3000);
+
+        await showCaption('"aku tahu aku tidak sempurna."', 'md', 4000);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"aku terlalu banyak takut."', 'md', 3800);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"aku terlalu sering butuh diyakinkan."', 'md', 4000);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"aku terlalu sering membuatmu lelah\nmenghadapi isi kepala aku."', 'md', 5500);
+        await hideCaption(); await wait(2500);
+
+        await showCaption('"tapi satu hal yang tidak pernah bohong…"', 'md', 4000);
+        await hideCaption(); await wait(1800);
+
+        await showCaption('"aku benar-benar sayang sama kamu."', 'lg', 5500);
+        await hideCaption(); await wait(3000);
+
+        // ═══ MEMORY DISSOLVE ═══
+        showMemories();
+        photo.style.filter = 'grayscale(70%) brightness(.35) blur(5px) sepia(.3)';
+        if (ac()) { ac().fadePiano(0.05, 4000); ac().fadeTrack('rain', 0.1, 3000); }
+
+        await wait(5000);
+        hideMemories();
+        await wait(2000);
+
+        // ═══ THE FIRST LOVE CONFESSION ═══
+        // Piano sangat lembut, hanya hujan dan kejujuran terakhir
+        if (ac()) { ac().fadePiano(0.06, 3000); ac().fadeTrack('rain', 0.08, 2000); }
+
+        await showCaption('"dan mungkin…"', 'lg', 3500);
+        await hideCaption(); await wait(2500);
+
+        await showCaption('"aku baru sadar kenapa aku selama ini\nterlalu takut kehilangan kamu."', 'md', 5500);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"kenapa aku terlalu sering overthinking."', 'sm', 4000);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"kenapa aku terlalu sering minta diyakinkan."', 'sm', 4000);
+        await hideCaption(); await wait(2500);
+
+        await showCaption('"karena kamu bukan sekadar pacar buat aku."', 'md', 5000);
+        await hideCaption();
+
+        // SUNYI 2 DETIK
+        await wait(2200);
+
+        await showCaption('"kamu cinta pertama aku."', 'xl', 5000);
+        await hideCaption(); await wait(2500);
+
+        await showCaption('"kamu juga pacar pertama aku."', 'xl', 5500);
+        await hideCaption(); await wait(3500);
+
+        await showCaption('"jadi maaf kalau aku terlalu takut."', 'md', 4000);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"maaf kalau aku terlalu banyak cemas."', 'md', 4000);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"maaf kalau aku terlalu sering berpikir buruk."', 'md', 4500);
+        await hideCaption(); await wait(3000);
+
+        await showCaption('"aku benar-benar tidak tahu…"', 'md', 3500);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"bagaimana cara menghadapi kemungkinan kehilangan\norang pertama yang aku cinta sebesar ini."', 'md', 6500);
+        await hideCaption(); await wait(4000);
+
+        // Piano makin pelan — hanya hujan
+        if (ac()) { ac().fadePiano(0.03, 4000); ac().fadeTrack('rain', 0.12, 2500); }
+
+        await showCaption('"buat orang lain mungkin ini terlihat berlebihan."', 'sm', 4500);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"tapi buat aku…"', 'lg', 3000);
+        await hideCaption(); await wait(1800);
+
+        await showCaption('"kamu adalah pertama kalinya aku merasa\nbenar-benar dicintai."', 'md', 5500);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"pertama kalinya aku takut kehilangan seseorang\nsampai sesesak ini."', 'md', 5500);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"pertama kalinya aku ingin dipilih terus."', 'md', 4500);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"pertama kalinya aku ingin semua orang tahu\nkalau aku punya kamu."', 'md', 5500);
+        await hideCaption(); await wait(3500);
+
+        // Foto blur sedikit, lampu redup
+        photo.style.filter = 'grayscale(80%) brightness(.28) blur(8px) sepia(.4)';
+
+        await showCaption('"aku cuma pengen merasa aman."', 'md', 4000);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"aku cuma pengen merasa cukup buat kamu."', 'md', 4500);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"aku cuma takut…"', 'lg', 3000);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"suatu hari nanti kamu sadar…"', 'md', 3800);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"kalau aku terlalu melelahkan\nuntuk dipertahankan."', 'lg', 5500);
+        await hideCaption();
+
+        // SUNYI TOTAL 3 DETIK
+        await wait(3500);
+
+        // Final breakdown
+        await showCaption('"dan mungkin itu alasan kenapa aku terlalu sulit tenang."', 'md', 5000);
+        await hideCaption(); await wait(2500);
+
+        await showCaption('"karena kehilangan cinta pertama…"', 'lg', 4000);
+        await hideCaption(); await wait(1800);
+
+        await showCaption('"ternyata sesakit ini\nbahkan sebelum benar-benar terjadi."', 'lg', 6000);
+        await hideCaption(); await wait(4000);
+
+        await showCaption('"jadi kalau selama ini aku terlalu overthinking…"', 'sm', 4500);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"itu karena aku terlalu takut kehilangan\nsatu-satunya orang…"', 'md', 5000);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"yang pertama kali berhasil aku cinta setulus ini."', 'lg', 6500);
+        await hideCaption(); await wait(5000);
+
+        // ═══ THE LAST CONFESSION ═══
+        if (ac()) { ac().fadePiano(0.03, 5000); ac().fadeTrack('rain', 0.14, 3000); }
+
+        photo.style.filter = 'grayscale(90%) brightness(.2) blur(12px) sepia(.6)';
+
+        await showCaption('"mungkin nanti kamu akan menemukan seseorang…"', 'md', 5000);
+        await hideCaption(); await wait(1800);
+
+        await showCaption('"yang lebih tenang dari aku."', 'md', 4000);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"yang tidak terlalu overthinking."', 'sm', 3800);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"yang tidak terlalu takut kehilangan."', 'sm', 4000);
+        await hideCaption(); await wait(2500);
+
+        await showCaption('"dan kalau itu benar-benar terjadi…"', 'md', 4500);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"aku harap dia bisa mencintaimu\nlebih baik daripada aku."', 'lg', 6000);
+        await hideCaption();
+
+        // SUNYI TOTAL
+        await wait(4000);
+
+        // ═══ HER CHOICE — penyerahan total ═══
+        if (ac()) { ac().fadePiano(0.02, 4000); }
+
+        await showCaption('"dan kalau kamu baca ini sampai sini…"', 'md', 5000);
+        await hideCaption(); await wait(3000);
+
+        await showCaption('"berarti kamu masih peduli."', 'lg', 4500);
+        await hideCaption(); await wait(3000);
+
+        await showCaption('"dan itu sudah lebih dari cukup buat aku."', 'md', 5000);
+        await hideCaption(); await wait(4000);
+
+        await showCaption('"tapi aku harus jujur…"', 'md', 3500);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"aku tidak pergi karena mau."', 'lg', 4500);
+        await hideCaption(); await wait(2500);
+
+        await showCaption('"aku pergi karena kamu izinkan."', 'xl', 5500);
+        await hideCaption(); await wait(4000);
+
+        await showCaption('"kalau kamu tidak pernah bilang pergi…"', 'md', 4500);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"aku akan tetap di sini."', 'md', 4000);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"menunggu."', 'lg', 3000);
+        await hideCaption(); await wait(1200);
+
+        await showCaption('"berharap."', 'lg', 3000);
+        await hideCaption(); await wait(1200);
+
+        await showCaption('"meskipun sakit."', 'lg', 3500);
+        await hideCaption(); await wait(3500);
+
+        await showCaption('"tapi kalau kamu memang sudah capek…"', 'md', 4500);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"capek sama overthinking aku…"', 'sm', 3500);
+        await hideCaption(); await wait(1200);
+
+        await showCaption('"capek sama rasa takut aku…"', 'sm', 3500);
+        await hideCaption(); await wait(1200);
+
+        await showCaption('"capek harus terus meyakinkan aku…"', 'sm', 4000);
+        await hideCaption(); await wait(3000);
+
+        await showCaption('"aku mengerti."', 'xl', 4500);
+        await hideCaption(); await wait(3500);
+
+        await showCaption('"aku tidak akan marah."', 'md', 3500);
+        await hideCaption(); await wait(1200);
+
+        await showCaption('"aku tidak akan menyalahkan kamu."', 'md', 4000);
+        await hideCaption(); await wait(1500);
+
+        await showCaption('"karena kamu berhak bahagia\ndengan seseorang yang tidak membuatmu lelah."', 'md', 6000);
+        await hideCaption(); await wait(3500);
+
+        await showCaption('"meskipun itu bukan aku."', 'lg', 5000);
+        await hideCaption();
+
+        await wait(5000);
+
+        // ═══ THE LAST LINE — hancur pelan-pelan ═══
+        photo.style.filter = 'grayscale(100%) brightness(.08) blur(18px) sepia(.9)';
+        stopClock();
+
+        if (ac()) { ac().fadePiano(0.015, 5000); }
+
+        await showCaption('"terima kasih, Rani…"', 'xl', 4000);
+        await hideCaption(); await wait(2500);
+
+        await showCaption('"karena pernah jadi rumah\npaling nyaman yang aku punya."', 'final', 7000);
+        await hideCaption(2500); await wait(4000);
+
+        await showCaption('"terima kasih sudah pernah sabar\nsama orang yang bahkan tidak sabar sama dirinya sendiri."', 'md', 7000);
+        await hideCaption(2500); await wait(4000);
+
+        await showCaption('"dan maaf…"', 'xl', 3500);
+        await hideCaption(); await wait(2500);
+
+        await showCaption('"karena aku mencintaimu\ndengan cara yang bikin kamu lelah."', 'final', 7000);
+        await hideCaption(2500); await wait(4000);
+
+        await showCaption('"kalau aku bisa ulang semuanya dari awal…"', 'md', 5000);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"aku akan tetap memilih kamu."', 'lg', 5000);
+        await hideCaption(); await wait(3000);
+
+        await showCaption('"tapi dengan versi aku yang lebih baik."', 'md', 5000);
+        await hideCaption(); await wait(2000);
+
+        await showCaption('"yang tidak terlalu takut."', 'sm', 3500);
+        await hideCaption(); await wait(1200);
+
+        await showCaption('"yang tidak terlalu cemas."', 'sm', 3500);
+        await hideCaption(); await wait(1200);
+
+        await showCaption('"yang bisa mencintaimu\ntanpa membuatmu sesak."', 'md', 5500);
+        await hideCaption();
+
+        await wait(5000);
+
+        await showCaption('"tapi versi itu tidak ada."', 'lg', 4500);
+        await hideCaption(); await wait(3000);
+
+        await showCaption('"yang ada cuma aku yang ini."', 'md', 4500);
+        await hideCaption(); await wait(2500);
+
+        await showCaption('"dan aku yang ini…\nsudah memberikan semua yang aku punya."', 'md', 6000);
+        await hideCaption();
+
+        await wait(5000);
+
+        // ═══ ENDING — sunyi absolut ═══
+        if (ac()) {
+          ac().fadePiano(0, 8000);
+          ac().fadeTrack('breathing', 0, 4000);
+        }
+
+        await showCaption('"selamat tinggal."', 'xl', 5000);
+        await hideCaption();
+
+        await wait(4000);
+
+        photo.style.opacity = '0';
+        await wait(3000);
+
+        // Fade to absolute black
+        finalFade.style.opacity = '1';
+
+        // Rain fades out
+        if (ac()) ac().fadeTrack('rain', 0, 10000);
+
+        // Secret whisper after 8s of total darkness
+        await wait(8000);
+        whisper.classList.add('active');
+        await wait(6000);
+        whisper.classList.remove('active');
+
+        // Absolute silence. Nothing left. Just the memory of rain.
+        await wait(4000);
+        // Done.
+      }
+
+      /* ── Boot ── */
+      function boot() {
+        if (window.__finalStarted) return;
+        window.__finalStarted = true;
+        const p = document.getElementById('start-prompt');
+        if (p) p.style.opacity = '0';
+        runStory();
+      }
+
+      document.addEventListener('click', boot, { once: true });
+      setTimeout(boot, 1500);
+    })();
+  </script>
+</body>
+
+</html>

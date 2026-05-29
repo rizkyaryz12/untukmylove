@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chapter 2 - Our Little World</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* Specific styling for Interactive popup */
+    .memory-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    .memory-modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-content {
+      background: #0d0d0c;
+      border: 1px solid var(--glass-border);
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+      position: relative;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: transparent;
+      border: none;
+      color: var(--text-soft);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      margin: 40px 0;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--glass-border);
+      padding: 20px;
+      border-radius: 8px;
+      text-align: left;
+    }
+
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .stat-val {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      margin-top: 4px;
+    }
+
+    /* Voice Note Simulator styling */
+    .vn-player {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: 50px;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      max-width: 320px;
+      margin: 30px auto 0;
+    }
+
+    .vn-play-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent-sunset);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Fade Cover -->
+  <div class="transition-overlay"></div>
+
+  <!-- Ambient elements -->
+  <canvas id="grain-canvas"></canvas>
+  <div class="vhs-lines"></div>
+  <div class="rain-container"></div>
+
+  <main class="container">
+    <header style="margin-bottom: 60px;">
+      <p class="subtitle" style="font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.25em;">CHAPTER 02
+      </p>
+      <h1 class="title-medium">Our Little World</h1>
+      <div style="width: 60px; height: 1px; background: var(--accent-sunset); margin-top: 16px;"></div>
+    </header>
+
+    <div class="text-content">
+      "Dunia kecil yang dulu rasanya cukup untuk membuatku merasa paling beruntung."
+    </div>
+
+    <!-- Polaroid Gallery -->
+    <div class="polaroid-gallery">
+      <div class="polaroid"
+        onclick="openMemoryModal('memory1', 'images/Foto1.jpeg', '20 Januari 2026', 'Foto Pertamamu.')">
+        <div class="polaroid-img-wrapper">
+          <img src="images/Foto1.jpeg" class="polaroid-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption">20 Januari — Foto Pertamamu.</p>
+      </div>
+
+      <div class="polaroid"
+        onclick="openMemoryModal('memory2', 'images/Foto13.jpeg', '14 Februari 2026', 'Hadiah Dariku Untukmu.')">
+        <div class="polaroid-img-wrapper">
+          <img src="images/Foto13.jpeg" class="polaroid-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption">14 Februari — Hadiah Dariku Untukmu.</p>
+      </div>
+
+      <div class="polaroid"
+        onclick="openMemoryModal('memory3', 'images/Foto5.jpeg', '25 Mei 2026', 'Apakah ini pap terakhir kamu?.')">
+        <div class="polaroid-img-wrapper">
+          <img src="images/Foto5.jpeg" class="polaroid-img" alt="Memory">
+        </div>
+        <p class="polaroid-caption">25 Mei — Apakah ini pap terakhir kamu?.</p>
+      </div>
+    </div>
+
+    <!-- Stat cards of memories -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">total call duration</div>
+        <div class="stat-val">421 Hours</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">saved voice notes</div>
+        <div class="stat-val">37 Notes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">favorite song</div>
+        <div class="stat-val">Yellow — Coldplay</div>
+      </div>
+    </div>
+
+    <!-- Spotify player card -->
+    <div class="spotify-card">
+      <div class="spotify-thumb" style="background-image: url('images/mem2.jpg');"></div>
+      <div class="spotify-info">
+        <div class="spotify-title">Our Playlist</div>
+        <div class="spotify-artist">37 songs collected</div>
+      </div>
+      <div class="spotify-wave">
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+        <div class="wave-bar"></div>
+      </div>
+    </div>
+
+    <!-- Voice Note Simulator -->
+    <div class="vn-player">
+      <button class="vn-play-btn" onclick="playVoiceNote()">▶</button>
+      <div style="flex-grow:1; text-align:left;">
+        <div class="stat-label" style="font-size:0.6rem;">voice note simulator</div>
+        <div class="stat-val" id="vn-text" style="font-size:0.85rem; margin-top:2px;">"dengar VN dia..."</div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 80px;">
+      <a href="chapter3.html" class="btn-cinematic">the way i loved you</a>
+    </div>
+  </main>
+
+  <!-- Interactive popup modal -->
+  <div class="memory-modal" id="memory-modal">
+    <div class="modal-content">
+      <button class="close-modal" onclick="closeMemoryModal()">CLOSE</button>
+      <div style="width:100%; height:260px; overflow:hidden; border-radius:4px; margin-bottom:20px;">
+        <img src="" id="modal-img" style="width:100%; height:100%; object-fit:cover;" alt="Popup memory">
+      </div>
+      <p class="stat-label" id="modal-date" style="color: var(--accent-sunset);"></p>
+      <p class="text-desc" id="modal-desc"
+        style="margin-top:10px; font-family: var(--font-serif); font-size:1.15rem; font-style:italic; line-height:1.6;">
+      </p>
+    </div>
+  </div>
+
+  <!-- Interactive controls -->
+  <div class="cinematic-nav">
+    <a href="chapter1.html" class="nav-btn">prev</a>
+    <div class="nav-divider"></div>
+    <button class="nav-btn audio-toggle-btn">
+      <span class="audio-icon playing"></span>
+      audio
+    </button>
+    <div class="nav-divider"></div>
+    <a href="chapter3.html" class="nav-btn">next</a>
+  </div>
+
+  <script src="js/script.js"></script>
+  <script>
+    function openMemoryModal(id, imgSrc, dateStr, descStr) {
+      document.getElementById('modal-img').src = imgSrc;
+      document.getElementById('modal-date').textContent = dateStr;
+      document.getElementById('modal-desc').textContent = descStr;
+      document.getElementById('memory-modal').classList.add('active');
+      // Camera click sound on polaroid open
+      if (window.audioController) {
+        window.audioController.playCameraClick();
+        window.audioController.playSwell();
+      }
+    }
+
+    function closeMemoryModal() {
+      document.getElementById('memory-modal').classList.remove('active');
+    }
+
+    let vnPlaying = false;
+    function playVoiceNote() {
+      const vnText = document.getElementById('vn-text');
+      const btn = document.querySelector('.vn-play-btn');
+
+      if (!vnPlaying) {
+        vnPlaying = true;
+        btn.textContent = "■";
+        vnText.textContent = "VN: \"kamu jangan lupa makan ya...\"";
+
+        // Play breathing ambience to simulate hearing a voice note
+        if (window.audioController) {
+          window.audioController.startBreathing(0.06);
+          window.audioController.fadeTrack('rain', 0.04, 800);
+        }
+
+        setTimeout(() => {
+          vnText.textContent = "VN: finished.";
+          btn.textContent = "▶";
+          vnPlaying = false;
+          // Restore rain
+          if (window.audioController) {
+            window.audioController.fadeTrack('rain', 0.1, 1200);
+            window.audioController.fadeTrack('breathing', 0.02, 1200);
+          }
+        }, 3200);
+      }
+    }
+  </script>
+</body>
+
+</html>
